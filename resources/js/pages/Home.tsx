@@ -1,7 +1,7 @@
 import Layout from "@/Layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function Home({}) {
+export default function Home() {
     return (
         <Layout>
             <Avatar className='rounded-lg h-20 w-20'>
