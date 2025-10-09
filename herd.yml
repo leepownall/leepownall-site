@@ -1,0 +1,8 @@
+name: leepownall
+php: '8.4'
+secured: true
+aliases:
+    - ∂
+services: {  }
+integrations:
+    forge: {  }
