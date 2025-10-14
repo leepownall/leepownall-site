@@ -5,7 +5,7 @@ export default function Home() {
     return (
         <Layout>
             <Avatar className='rounded-lg h-20 w-20'>
-                <AvatarImage src="lee.jpg" alt="@leepownall" />
+                <AvatarImage src="lee-small.jpg" alt="@leepownall" />
                 <AvatarFallback>LP</AvatarFallback>
             </Avatar>
             <h1 className='scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl mt-4'>Lee Pownall</h1>

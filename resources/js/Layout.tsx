@@ -13,9 +13,7 @@ export default function Layout({ children }) {
                 <meta name="apple-mobile-web-app-title" content="Lee Pownall" />
                 <link rel="manifest" href="/site.webmanifest" />
 
-                <title>Lee Pownall</title>
-
-                <meta name="description" content="" />
+                <meta name="description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
 
                 <meta property="og:url" content="https://leepownall.com" />
                 <meta property="og:type" content="website" />
