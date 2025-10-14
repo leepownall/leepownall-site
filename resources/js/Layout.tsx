@@ -10,6 +10,23 @@ export default function Layout({ children }) {
                 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
                 <meta name="apple-mobile-web-app-title" content="Lee Pownall" />
                 <link rel="manifest" href="/site.webmanifest" />
+
+                <title>Lee Pownall</title>
+
+                <meta name="description" content="" />
+
+                <meta property="og:url" content="https://leepownall.com" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Lee Pownall" />
+                <meta property="og:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
+                <meta property="og:image" content="/og-image.png" />
+
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta property="twitter:domain" content="leepownall.com" />
+                <meta property="twitter:url" content="https://leepownall.com" />
+                <meta name="twitter:title" content="Lee Pownall" />
+                <meta name="twitter:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
+                <meta name="twitter:image" content="/og-image.png" />
             </Head>
             <main className='p-4 sm:p-8 max-w-2xl'>{children}</main>
         </>
