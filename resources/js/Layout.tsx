@@ -1,6 +1,18 @@
+import {Head} from "@inertiajs/react";
+
 export default function Layout({ children }) {
     return (
-        <main className='p-4 sm:p-8 max-w-2xl'>{children}</main>
+        <>
+            <Head>
+                <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+                <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+                <link rel="shortcut icon" href="/favicon.ico" />
+                <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+                <meta name="apple-mobile-web-app-title" content="Lee Pownall" />
+                <link rel="manifest" href="/site.webmanifest" />
+            </Head>
+            <main className='p-4 sm:p-8 max-w-2xl'>{children}</main>
+        </>
     )
 }
 
