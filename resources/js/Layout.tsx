@@ -1,6 +1,8 @@
-import {Head} from "@inertiajs/react";
+import {Head, usePage} from "@inertiajs/react";
 
 export default function Layout({ children }) {
+    const { appUrl } = usePage().props
+
     return (
         <>
             <Head>
@@ -19,14 +21,14 @@ export default function Layout({ children }) {
                 <meta property="og:type" content="website" />
                 <meta property="og:title" content="Lee Pownall" />
                 <meta property="og:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
-                <meta property="og:image" content="/og-image.png" />
+                <meta property="og:image" content={`${appUrl}/og-image.png`} />
 
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta property="twitter:domain" content="leepownall.com" />
                 <meta property="twitter:url" content="https://leepownall.com" />
                 <meta name="twitter:title" content="Lee Pownall" />
                 <meta name="twitter:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
-                <meta name="twitter:image" content="/og-image.png" />
+                <meta name="twitter:image" content={`${appUrl}/og-image.png`} />
             </Head>
             <main className='p-4 sm:p-8 max-w-2xl'>{children}</main>
         </>
