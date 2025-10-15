@@ -10,10 +10,17 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "alexpechkarev/geometry-library": "^1.0",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
+        "laravel/prompts": "^0.3.7",
         "laravel/tinker": "^2.10.1",
-        "laravel/wayfinder": "^0.1.11"
+        "laravel/wayfinder": "^0.1.11",
+        "matanyadaev/laravel-eloquent-spatial": "^4.5",
+        "saloonphp/laravel-plugin": "^3.0",
+        "saloonphp/pagination-plugin": "^2.0",
+        "saloonphp/saloon": "^3.0",
+        "spatie/laravel-webhook-client": "^3.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
