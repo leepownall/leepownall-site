@@ -8,10 +8,13 @@ use App\Http\Integrations\Strava\Requests\ViewSubscription;
 use App\Http\Integrations\Strava\StravaConnector;
 use Illuminate\Console\Command;
 
+use function json_decode;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\table;
 use function Laravel\Prompts\text;
+use function Pest\Laravel\json;
 
 class ManageStravaCommand extends Command
 {
@@ -39,7 +42,12 @@ class ManageStravaCommand extends Command
             }
 
             if ($response->successful()) {
-                info($response->body());
+                table(
+                    headers: ['Id', 'Resource State', 'Application ID', 'Callback URL', 'Created At', 'Updated At'],
+                    rows: array_map(function ($row) {
+                        return (array) $row;
+                    }, (array) json_decode($response->body())),
+                );
             }
         }
 

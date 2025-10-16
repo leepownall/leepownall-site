@@ -12,7 +12,7 @@ use App\DataTransferObjects\Strava\DetailedAthlete;
 use App\Http\Integrations\Strava\Requests\GetActivity;
 use App\Http\Integrations\Strava\Requests\GetAuthenticatedAthlete;
 use App\Http\Integrations\Strava\StravaConnector;
-use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Saloon\Http\Auth\AccessTokenAuthenticator;
 
 final readonly class StravaService
@@ -22,36 +22,34 @@ final readonly class StravaService
         return new StravaConnector;
     }
 
-    public function authenticatedAthlete(User $user): DetailedAthlete
+    public function authenticatedAthlete(): DetailedAthlete
     {
         return $this
-            ->connectorForUser($user)
+            ->connectorForUser()
             ->send(new GetAuthenticatedAthlete)
             ->dtoOrFail();
     }
 
-    public function activity(User $user, int $stravaActivityId): DetailedActivity
+    public function activity(int $stravaActivityId): DetailedActivity
     {
         return $this
-            ->connectorForUser($user)
+            ->connectorForUser()
             ->send(new GetActivity(id: $stravaActivityId))
             ->dtoOrFail();
     }
 
-    private function getOAuthDetails(User $user): AccessTokenAuthenticator
+    private function getOAuthDetails(): AccessTokenAuthenticator
     {
-        $integration = $user->stravaIntegration->first();
-
         return new AccessTokenAuthenticator(
-            $integration->access_token,
-            $integration->refresh_token,
-            $integration->refresh_token_expires_at->toDateTimeImmutable(),
+            Cache::get('strava_access_token'),
+            Cache::get('refresh_token'),
+            Cache::get('refresh_token_expires_at'),
         );
     }
 
-    private function connectorForUser(User $user): StravaConnector
+    private function connectorForUser(): StravaConnector
     {
-        $accessTokenDetails = $this->getOAuthDetails($user);
+        $accessTokenDetails = $this->getOAuthDetails();
 
         $connector = $this->connector()->authenticate($accessTokenDetails);
 
@@ -59,19 +57,17 @@ final readonly class StravaService
             $newAccessTokenDetails = $connector->refreshAccessToken($accessTokenDetails);
 
             $connector->authenticate($newAccessTokenDetails);
-            $this->updateOAuthDetails($newAccessTokenDetails, $user);
+            $this->updateOAuthDetails($newAccessTokenDetails);
         }
 
         return $connector;
     }
 
-    private function updateOAuthDetails(AccessTokenAuthenticator $newAccessTokenDetails, User $user): void
+    private function updateOAuthDetails(AccessTokenAuthenticator $newAccessTokenDetails): void
     {
-        $user->updateOAuthDetails(
-            $newAccessTokenDetails->getAccessToken(),
-            $newAccessTokenDetails->getRefreshToken(),
-            $newAccessTokenDetails->getExpiresAt(),
-        );
+        Cache::put('strava_access_token', $newAccessTokenDetails->accessToken);
+        Cache::put('refresh_token', $newAccessTokenDetails->refreshToken);
+        Cache::put('refresh_token_expires_at', $newAccessTokenDetails->expiresAt);
     }
 
     public function getAuthRedirectDetails(): AuthorizationRedirectDetails

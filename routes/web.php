@@ -6,5 +6,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 
-Route::get('strava/login', Strava\CreateController::class)->name('strava.create');
+Route::get('strava/login', Strava\CreateController::class)->name('strava.create')->middleware('auth');
 Route::get('strava/callback', Strava\StoreController::class);

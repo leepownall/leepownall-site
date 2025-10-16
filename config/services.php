@@ -38,9 +38,10 @@ return [
     'strava' => [
         'client_id' => env('STRAVA_CLIENT_ID'),
         'client_secret' => env('STRAVA_CLIENT_SECRET'),
-        'default_scopes' => env('STRAVA_DEFAULT_SCOPES'),
+        'default_scopes' => \Illuminate\Support\Arr::wrap(env('STRAVA_DEFAULT_SCOPES')),
         'redirect_uri' => env('STRAVA_REDIRECT_URI'),
         'token_endpoint' => env('STRAVA_TOKEN_ENDPOINT'),
+        'authorize_endpoint' => env('STRAVA_AUTHORIZE_ENDPOINT'),
     ]
 
 ];
