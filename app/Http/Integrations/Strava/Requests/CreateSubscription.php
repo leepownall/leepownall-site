@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Integrations\Strava\Requests;
 
+use Illuminate\Support\Facades\Config;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
 
@@ -24,7 +25,7 @@ class CreateSubscription extends Request
             'client_id' => config('services.strava.client_id'),
             'client_secret' => config('services.strava.client_secret'),
             'callback_url' => "{$this->domain}/api/webhook",
-            'verify_token' => 'STRAVA',
+            'verify_token' => Config::string('services.strava.verify_token'),
         ];
     }
 }

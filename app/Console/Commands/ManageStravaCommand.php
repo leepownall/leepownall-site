@@ -52,8 +52,10 @@ class ManageStravaCommand extends Command
         }
 
         if ($option === 'delete-subscription') {
+            $subscriptionId = text(label: 'What is your subscription id?', required: true);
+
             $connector = new StravaConnector();
-            $request = new DeleteSubscription();
+            $request = new DeleteSubscription($subscriptionId);
 
             $response = $connector->send($request);
 
@@ -72,7 +74,7 @@ class ManageStravaCommand extends Command
             $connector = new StravaConnector();
             $request = new CreateSubscription(domain: $sharingUrl);
 
-            $response = $connector->send($request);
+            $response = $connector->debug()->send($request);
 
             if ($response->failed()) {
                 error($response->body());

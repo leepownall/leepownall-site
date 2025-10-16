@@ -2,4 +2,5 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::webhooks('webhook');
+Route::webhooks('webhook', name: 'strava');
+Route::webhooks('webhook', name: 'strava', method: 'get');
