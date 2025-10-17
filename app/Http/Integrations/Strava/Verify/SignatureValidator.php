@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Integrations\Strava;
+namespace App\Http\Integrations\Strava\Verify;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Spatie\WebhookClient\SignatureValidator\SignatureValidator as SpatieSignatureValidator;
 use Spatie\WebhookClient\WebhookConfig;
 
@@ -12,6 +13,6 @@ class SignatureValidator implements SpatieSignatureValidator
 {
     public function isValid(Request $request, WebhookConfig $config): bool
     {
-        return true;
+        return $request->get('hub_verify_token') === Config::string('services.strava.verify_token');
     }
 }

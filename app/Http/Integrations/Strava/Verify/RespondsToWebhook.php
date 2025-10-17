@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Integrations\Strava;
+namespace App\Http\Integrations\Strava\Verify;
 
 use Illuminate\Http\Request;
 use Spatie\WebhookClient\WebhookConfig;
@@ -13,6 +13,10 @@ class RespondsToWebhook implements SpatieProcessWebhookResponse
 {
     public function respondToValidWebhook(Request $request, WebhookConfig $config): Response
     {
-        return response()->json();
+        if ($request->has('hub_challenge')) {
+            return response()->json(['hub.challenge' => $request->get('hub_challenge')]);
+        }
+
+        return response()->json(status: Response::HTTP_ACCEPTED);
     }
 }
