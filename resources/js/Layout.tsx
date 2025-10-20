@@ -28,7 +28,7 @@ export default function Layout({ children }) {
                 <meta name="twitter:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
                 <meta name="twitter:image" content={`${appUrl}/og-image.png`} />
             </Head>
-            <main className='p-4 sm:p-8 max-w-2xl'>{children}</main>
+            <main className='p-4 sm:p-8 max-w-4xl'>{children}</main>
         </>
     )
 }

@@ -1,10 +1,8 @@
 function Column({ heading, value} : { heading: string, value: string }) {
     return (
-        <div className="mt-2 flex items-center space-x-2">
-            <div>
-                <span className="text-sm text-muted-foreground">{heading}</span>
-                <p>{value}</p>
-            </div>
+        <div className="flex flex-col justify-start">
+            <span className="text-sm text-muted-foreground">{heading}</span>
+            <p className='text-nowrap'>{value}</p>
         </div>
     );
 }
