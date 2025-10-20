@@ -1,7 +1,7 @@
-import {Head, usePage} from "@inertiajs/react";
+import { Head, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
-    const { appUrl } = usePage().props
+    const { appUrl } = usePage().props;
 
     return (
         <>
@@ -28,8 +28,7 @@ export default function Layout({ children }) {
                 <meta name="twitter:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
                 <meta name="twitter:image" content={`${appUrl}/og-image.png`} />
             </Head>
-            <main className='p-4 sm:p-8 max-w-2xl'>{children}</main>
+            <main className="max-w-4xl p-4 sm:p-8">{children}</main>
         </>
-    )
+    );
 }
-
