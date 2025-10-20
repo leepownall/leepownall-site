@@ -25,7 +25,7 @@ class HomeController extends Controller
                         'total_elevation_gain',
                         'started_at',
                     ])
-                    ->latest()
+                    ->latest('started_at')
                     ->first(),
             ),
         ]);

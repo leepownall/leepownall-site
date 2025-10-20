@@ -2,9 +2,9 @@
 
 namespace App\Casts;
 
+use App\ValueObjects\Elevation as ElevationValueObject;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use App\ValueObjects\Elevation as ElevationValueObject;
 
 class ElevationCast implements CastsAttributes
 {

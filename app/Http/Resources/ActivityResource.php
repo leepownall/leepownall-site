@@ -20,13 +20,13 @@ class ActivityResource extends JsonResource
             'name' => $this->whenHas('name'),
             'type' => $this->whenHas('type'),
             'distance' => $this->whenHas('distance', fn (Distance $value): float => $value->asKilometers()),
-            'moving_time' =>  $this->whenHas('moving_time', fn (Duration $value): string => $value->asReadable()),
-            'elapsed_time' =>  $this->whenHas('elapsed_time', fn (Duration $value): string => $value->asReadable()),
-            'total_elevation_gain' =>  $this->whenHas('total_elevation_gain', fn (Elevation $value): string => $value->asMeters()),
+            'moving_time' => $this->whenHas('moving_time', fn (Duration $value): string => $value->asReadable()),
+            'elapsed_time' => $this->whenHas('elapsed_time', fn (Duration $value): string => $value->asReadable()),
+            'total_elevation_gain' => $this->whenHas('total_elevation_gain', fn (Elevation $value): string => $value->asMeters()),
             'started_at' => $this->whenHas('started_at'),
             'path' => $this->whenHas('path'),
-            'max_elevation' =>  $this->whenHas('max_elevation', fn (Elevation $value): string => $value->asMeters()),
-            'min_elevation' =>  $this->whenHas('min_elevation', fn (Elevation $value): string => $value->asMeters()),
+            'max_elevation' => $this->whenHas('max_elevation', fn (Elevation $value): string => $value->asMeters()),
+            'min_elevation' => $this->whenHas('min_elevation', fn (Elevation $value): string => $value->asMeters()),
             'description' => $this->whenHas('description'),
         ];
     }

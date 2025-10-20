@@ -2,9 +2,9 @@
 
 namespace App\Casts;
 
+use App\ValueObjects\Duration as DurationValueObject;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use App\ValueObjects\Duration as DurationValueObject;
 
 class DurationCast implements CastsAttributes
 {

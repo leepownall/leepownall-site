@@ -6,7 +6,6 @@ namespace App\DataTransferObjects\Strava;
 
 use App\Actions\GeneratePathFromPolyline;
 use App\Enums\ActivityType;
-use App\Enums\IntegrationType;
 use Carbon\Carbon;
 use MatanYadaev\EloquentSpatial\Objects\LineString;
 
@@ -16,12 +15,12 @@ final class DetailedActivity
         public int $activityId,
         public ?string $name,
         public ?ActivityType $type,
-        public float $distance,
-        public int $movingTime,
+        public ?float $distance,
+        public ?int $movingTime,
         public int $elapsedTime,
-        public float $totalElevationGain,
+        public ?float $totalElevationGain,
         public Carbon $startedAt,
-        public LineString $path,
+        public ?LineString $path = null,
         public ?float $maxElevation = null,
         public ?float $minElevation = null,
         public ?string $description = null,
@@ -29,7 +28,7 @@ final class DetailedActivity
 
     public static function fromResponse(array $response): static
     {
-        $path = (new GeneratePathFromPolyline)($response['map']['polyline']);
+        $path = filled($response['map']['polyline']) ? (new GeneratePathFromPolyline)($response['map']['polyline']) : null;
 
         return new self(
             activityId: $response['id'],

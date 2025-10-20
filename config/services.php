@@ -43,6 +43,6 @@ return [
         'token_endpoint' => env('STRAVA_TOKEN_ENDPOINT'),
         'authorize_endpoint' => env('STRAVA_AUTHORIZE_ENDPOINT'),
         'verify_token' => env('STRAVA_VERIFY_TOKEN'),
-    ]
+    ],
 
 ];

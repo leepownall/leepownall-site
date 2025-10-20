@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\DistanceCast;
 use App\Casts\DurationCast;
 use App\Casts\ElevationCast;
+use App\Enums\ActivityType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -31,6 +32,7 @@ class Activity extends Model
     {
         return [
             'started_at' => 'datetime',
+            'type' => ActivityType::class,
             'distance' => DistanceCast::class,
             'elapsed_time' => DurationCast::class,
             'moving_time' => DurationCast::class,

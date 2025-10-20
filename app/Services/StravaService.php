@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DataTransferObjects\Strava\AccessTokenDetails;
 use App\DataTransferObjects\Strava\AuthorizationCallbackDetails;
 use App\DataTransferObjects\Strava\AuthorizationRedirectDetails;
-use App\DataTransferObjects\Strava\AccessTokenDetails;
 use App\DataTransferObjects\Strava\DetailedActivity;
 use App\DataTransferObjects\Strava\DetailedAthlete;
 use App\Http\Integrations\Strava\Requests\GetActivity;

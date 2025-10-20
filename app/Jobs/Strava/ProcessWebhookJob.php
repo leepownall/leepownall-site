@@ -16,7 +16,7 @@ class ProcessWebhookJob extends SpatieProcessWebhookJob implements ShouldQueue
             'payload' => $this->webhookCall->payload,
         ]);
 
-        $strava = new StravaService();
+        $strava = new StravaService;
 
         $detailedActivity = $strava->activity(stravaActivityId: $this->webhookCall->payload['object_id']);
 

@@ -2,9 +2,9 @@
 
 namespace App\Casts;
 
+use App\ValueObjects\Distance as DistanceValueObject;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use App\ValueObjects\Distance as DistanceValueObject;
 
 class DistanceCast implements CastsAttributes
 {
