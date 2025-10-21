@@ -16,22 +16,18 @@ class ActivityFactory extends Factory
     public function definition(): array
     {
         return [
-            'activity_id' => $this->faker->unique()->numberBetween(1, 9_999_999),
-            'name' => $this->faker->sentence(3),
-            'type' => $this->faker->randomElement(array_map(static fn (ActivityType $t) => $t->value, ActivityType::cases())),
-            // Distances in meters; may be null for non-distance activities
-            'distance' => $this->faker->randomFloat(2, 0, 50_000),
-            'moving_time' => $this->faker->numberBetween(60, 4 * 3600),
-            'elapsed_time' => $this->faker->numberBetween(60, 5 * 3600),
-            // Elevation gain in meters
-            'total_elevation_gain' => $this->faker->randomFloat(2, 0, 1000),
-            'started_at' => Carbon::now()->subDays($this->faker->numberBetween(0, 30)),
+            'activity_id' => fake()->unique()->numberBetween(1, 9_999_999),
+            'name' => fake()->sentence(3),
+            'type' => fake()->randomElement(array_map(static fn (ActivityType $t) => $t->value, ActivityType::cases())),
+            'distance' => fake()->randomFloat(2, 0, 50_000),
+            'moving_time' => fake()->numberBetween(60, 4 * 3600),
+            'elapsed_time' => fake()->numberBetween(60, 5 * 3600),
+            'total_elevation_gain' => fake()->randomFloat(2, 0, 1000),
+            'started_at' => Carbon::now()->subDays(fake()->numberBetween(0, 30)),
             'path' => null,
-            'max_elevation' => $this->faker->randomFloat(2, 0, 2000),
-            'min_elevation' => $this->faker->randomFloat(2, 0, 2000),
-            'description' => $this->faker->optional()->text(),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'max_elevation' => fake()->randomFloat(2, 0, 2000),
+            'min_elevation' => fake()->randomFloat(2, 0, 2000),
+            'description' => fake()->optional()->text(),
         ];
     }
 
@@ -40,9 +36,8 @@ class ActivityFactory extends Factory
         return $this->state(function () {
             return [
                 'type' => ActivityType::Run->value,
-                // Ensure sensible non-null metrics for runs
-                'distance' => $this->faker->randomFloat(2, 500, 50_000),
-                'total_elevation_gain' => $this->faker->randomFloat(2, 0, 1000),
+                'distance' => fake()->randomFloat(2, 500, 50_000),
+                'total_elevation_gain' => fake()->randomFloat(2, 0, 1000),
             ];
         });
     }
@@ -52,7 +47,6 @@ class ActivityFactory extends Factory
         return $this->state(function () {
             return [
                 'type' => ActivityType::WeightTraining->value,
-                // Typically N/A for weight training
                 'distance' => null,
                 'total_elevation_gain' => null,
             ];
