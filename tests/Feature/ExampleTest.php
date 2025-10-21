@@ -1,3 +1,3 @@
 <?php
 
-test('returns a successful response', function () {})->skipTest();
+test('returns a successful response', function () {})->skip();
