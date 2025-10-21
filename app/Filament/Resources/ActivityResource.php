@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ActivityResource\Pages;
 use App\Models\Activity;
 use BackedEnum;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -80,13 +81,16 @@ class ActivityResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('activity_id'),
+                TextColumn::make('activity_id')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('type'),
+                TextColumn::make('type')
+                    ->badge(),
 
                 TextColumn::make('distance'),
 
@@ -94,26 +98,27 @@ class ActivityResource extends Resource
 
                 TextColumn::make('elapsed_time'),
 
-                TextColumn::make('total_elevation_gain'),
-
                 TextColumn::make('started_at')
                     ->label('Started Date')
                     ->date(),
-
-                TextColumn::make('path'),
 
                 TextColumn::make('max_elevation'),
 
                 TextColumn::make('min_elevation'),
 
-                TextColumn::make('description'),
+                TextColumn::make('total_elevation_gain'),
+
+                TextColumn::make('description')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
