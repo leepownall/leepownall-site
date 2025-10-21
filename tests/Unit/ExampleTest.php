@@ -1,3 +1,3 @@
 <?php
 
-test('that true is true', function () {})->skipTest();
+test('that true is true', function () {})->skip();
