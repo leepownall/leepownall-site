@@ -53,7 +53,7 @@ export default function Home({ activity }: { activity: Activity }) {
                     <Stat heading="Distance" value={`${activity.distance} km`} visible={activity.type === 'Run'} />
                     <Stat heading="Elapsed Time" value={activity.elapsed_time} />
                     <Stat heading="Moving Time" value={activity.moving_time} />
-                    <Stat heading="Elevation Gain" value={`${activity.total_elevation_gain} km`} visible={activity.type === 'Run'} />
+                    <Stat heading="Elevation Gain" value={`${activity.total_elevation_gain} m`} visible={activity.type === 'Run'} />
                 </div>
             </div>
         </Layout>
