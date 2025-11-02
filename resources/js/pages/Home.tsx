@@ -9,6 +9,7 @@ type Activity = {
     moving_time: string;
     total_elevation_gain: string;
     type: ActivityType;
+    started_at: string;
 };
 
 type ActivityType = 'Run' | 'WeightTraining';
@@ -47,7 +48,10 @@ export default function Home({ activity }: { activity: Activity }) {
             <div>
                 <h2 className="text-xl font-semibold tracking-tight">Latest Activity</h2>
                 <div className="mt-4 grid grid-cols-1 gap-2 tracking-tight">
-                    <Stat heading="Name" value={activity.name} />
+                    <div className="flex space-x-9">
+                        <Stat heading="Name" value={activity.name} />
+                        <Stat heading="Date" value={activity.started_at} />
+                    </div>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-2 tracking-tight sm:grid-cols-6">
                     <Stat heading="Distance" value={`${activity.distance} km`} visible={activity.type === 'Run'} />
