@@ -18,22 +18,22 @@ export default function Home({ activity }: { activity: Activity }) {
     return (
         <Layout>
             <div className="flex items-center space-x-4">
-                <Avatar className="h-14 w-14 rounded-lg">
+                <Avatar className="h-16 w-16 rounded-lg">
                     <AvatarImage src="lee-small.jpg" alt="@leepownall" />
                     <AvatarFallback>LP</AvatarFallback>
                 </Avatar>
-                <h1 className="tracking-tigher text-2xl font-semibold xl:text-3xl">Lee Pownall</h1>
+                <div className='flex flex-col'>
+                    <h1 className="tracking-tigher text-2xl font-semibold">Lee Pownall</h1>
+                    <h2 className="tracking-tigher text-lg">Developer & Runner</h2>
+                </div>
             </div>
-            <p className="mt-4 text-xl tracking-tight">A Senior Developer from the West Midlands, currently building things in Laravel.</p>
-            <p className="t mt-6 leading-7 tracking-tight">I also enjoy running, currently focusing on 5k, 10k and half marathon distances.</p>
-            <p className="t mt-2 leading-7 tracking-tight">
+            <p className="mt-6 leading-7 tracking-tight">A Senior Developer from the West Midlands, currently building things in Laravel. I also enjoy running, currently focusing on 5k, 10k and half marathon distances.</p>
+            <p className="mt-2 leading-7 tracking-tight">
                 Some code can be seen on{' '}
                 <a href="https://github.com/leepownall" className="font-medium text-primary underline underline-offset-4">
                     GitHub
                 </a>
                 .
-            </p>
-            <p className="t mt-2 leading-7 tracking-tight">
                 We can connect on{' '}
                 <a href="https://www.linkedin.com/in/lee-pownall" className="font-medium text-primary underline underline-offset-4">
                     LinkedIn
@@ -46,7 +46,7 @@ export default function Home({ activity }: { activity: Activity }) {
             </p>
             <div className="py-4">-</div>
             <div>
-                <h2 className="text-xl font-semibold tracking-tight">Latest Activity</h2>
+                <h2 className="text-md font-semibold uppercase">Latest Activity</h2>
                 <div className="mt-4 grid grid-cols-1 gap-2 tracking-tight">
                     <div className="flex space-x-9">
                         <Stat heading="Name" value={activity.name} />
