@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ActivityResource;
 use App\Models\Activity;
+use App\Models\BodyBattery;
+use App\Models\Sleep;
 use App\Models\Step;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -16,9 +18,13 @@ class HomeController extends Controller
     public function __invoke(Request $request): Response
     {
         $steps = Step::query()->latest()->first()?->amount ?? 0;
+        $sleep = Sleep::query()->latest()->first()?->amount ?? 0;
+        $bodyBattery = BodyBattery::query()->latest()->first()?->amount ?? 0;
 
         return Inertia::render('Home', [
             'steps' => number_format($steps),
+            'sleep' => number_format($sleep),
+            'bodyBattery' => number_format($bodyBattery),
             'activity' => ActivityResource::make(
                 Activity::query()
                     ->select([

@@ -14,7 +14,7 @@ type Activity = {
 
 type ActivityType = 'Run' | 'WeightTraining';
 
-export default function Home({ activity, steps }: { activity: Activity, steps: number }) {
+export default function Home({ activity, steps, sleep, bodyBattery }: { activity: Activity, steps: number, sleep: number, bodyBattery: number }) {
     return (
         <Layout>
             <div className="flex items-center space-x-4">
@@ -31,8 +31,10 @@ export default function Home({ activity, steps }: { activity: Activity, steps: n
 
             <div className="mt-8">
                 <h2 className="text-md font-semibold">Stats</h2>
-                <div className="mt-4 grid grid-cols-2 gap-2 tracking-tight">
-                    <Stat heading="Steps Today" value={steps} />
+                <div className="mt-4 grid grid-cols-3 gap-2 tracking-tight">
+                    <Stat heading="Steps" value={steps} />
+                    <Stat heading="Sleep Score" value={sleep} />
+                    <Stat heading="Body Battery" value={bodyBattery} />
                 </div>
             </div>
 
