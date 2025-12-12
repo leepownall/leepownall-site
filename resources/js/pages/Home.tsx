@@ -28,22 +28,6 @@ export default function Home({ activity }: { activity: Activity }) {
                 </div>
             </div>
             <p className="mt-6 leading-7 tracking-tight">A Senior Developer from the West Midlands, currently building things in Laravel. I also enjoy running, currently focusing on 5k, 10k and half marathon distances.</p>
-            <p className="mt-2 leading-7 tracking-tight">
-                Some code can be seen on{' '}
-                <a href="https://github.com/leepownall" className="font-medium text-primary underline underline-offset-4">
-                    GitHub
-                </a>
-                .
-                We can connect on{' '}
-                <a href="https://www.linkedin.com/in/lee-pownall" className="font-medium text-primary underline underline-offset-4">
-                    LinkedIn
-                </a>{' '}
-                or email me at{' '}
-                <a href="mailto:lee@pownall.uk" className="font-medium text-primary underline underline-offset-4">
-                    lee@pownall.uk
-                </a>
-                .
-            </p>
             <div className="mt-8">
                 <h2 className="text-md font-semibold">Latest Activity</h2>
                 <div className="mt-4 grid grid-cols-2 gap-2 tracking-tight">

@@ -28,7 +28,46 @@ export default function Layout({ children }) {
                 <meta name="twitter:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
                 <meta name="twitter:image" content={`${appUrl}/og-image.png`} />
             </Head>
-            <main className="max-w-2xl p-4 sm:p-8 mx-auto">{children}</main>
+            <div className="min-h-screen flex flex-col">
+                <main className="max-w-2xl p-4 sm:p-8 mx-auto flex-1">{children}</main>
+                <footer className="sticky bottom-0 bg-background mt-auto">
+                    <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center border-t border-border/50">
+                        <span className="text-sm text-muted-foreground">© 2025 Lee Pownall</span>
+                        <nav className="flex gap-3">
+                            <a
+                                href="https://x.com/leepownall"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-muted-foreground/70 hover:text-muted-foreground"
+                            >
+                                X
+                            </a>
+                            <a
+                                href="https://github.com/leepownall"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-muted-foreground/70 hover:text-muted-foreground"
+                            >
+                                GitHub
+                            </a>
+                            <a
+                                href="https://www.linkedin.com/in/lee-pownall"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-muted-foreground/70 hover:text-muted-foreground"
+                            >
+                                LinkedIn
+                            </a>
+                            <a
+                                href="mailto:lee@pownall.uk"
+                                className="text-sm text-muted-foreground/70 hover:text-muted-foreground"
+                            >
+                                Email
+                            </a>
+                        </nav>
+                    </div>
+                </footer>
+            </div>
         </>
     );
 }
