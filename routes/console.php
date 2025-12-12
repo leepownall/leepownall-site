@@ -7,4 +7,4 @@ Schedule::command('model:prune', [
     '--model' => [WebhookCall::class],
 ])->daily();
 
-Schedule::command(FetchStepsJob::class)->hourly();
+//Schedule::command(FetchStepsJob::class)->hourly();
