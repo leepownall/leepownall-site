@@ -18,7 +18,7 @@ class FetchStepsJob implements ShouldQueue
 
     public function handle(): void
     {
-        $browserFactory = new BrowserFactory;
+        $browserFactory = new BrowserFactory('chromium-browser');
 
         try {
             $browser = $browserFactory->createBrowser([
