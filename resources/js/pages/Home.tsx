@@ -14,7 +14,7 @@ type Activity = {
 
 type ActivityType = 'Run' | 'WeightTraining';
 
-export default function Home({ activity }: { activity: Activity }) {
+export default function Home({ activity, steps }: { activity: Activity, steps: number }) {
     return (
         <Layout>
             <div className="flex items-center space-x-4">
@@ -28,6 +28,14 @@ export default function Home({ activity }: { activity: Activity }) {
                 </div>
             </div>
             <p className="mt-6 leading-7 tracking-tight">A Senior Developer from the West Midlands, currently building things in Laravel. I also enjoy running, currently focusing on 5k, 10k and half marathon distances.</p>
+
+            <div className="mt-8">
+                <h2 className="text-md font-semibold">Stats</h2>
+                <div className="mt-4 grid grid-cols-2 gap-2 tracking-tight">
+                    <Stat heading="Steps Today" value={steps} />
+                </div>
+            </div>
+
             <div className="mt-8">
                 <h2 className="text-md font-semibold">Latest Activity</h2>
                 <div className="mt-4 grid grid-cols-2 gap-2 tracking-tight">

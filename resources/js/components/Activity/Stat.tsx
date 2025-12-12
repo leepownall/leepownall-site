@@ -1,4 +1,4 @@
-function Stat({ heading, value, visible = true }: { heading: string; value: string; visible?: boolean }) {
+function Stat({ heading, value, visible = true }: { heading: string; value: string|Number; visible?: boolean }) {
     if (!visible) {
         return null;
     }

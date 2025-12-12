@@ -4,15 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ActivityResource;
 use App\Models\Activity;
+use App\Models\Step;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use function number_format;
 
 class HomeController extends Controller
 {
     public function __invoke(Request $request): Response
     {
+        $steps = Step::query()->latest()->first()?->amount ?? 0;
+
         return Inertia::render('Home', [
+            'steps' => number_format($steps),
             'activity' => ActivityResource::make(
                 Activity::query()
                     ->select([

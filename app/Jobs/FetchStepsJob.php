@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Step;
 use HeadlessChromium\BrowserFactory;
 use HeadlessChromium\Exception\ElementNotFoundException;
 use Illuminate\Bus\Queueable;
@@ -9,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class FetchStepsJob implements ShouldQueue
 {
@@ -77,6 +79,37 @@ class FetchStepsJob implements ShouldQueue
                 $page->waitForReload();
             } catch (ElementNotFoundException $e) {
                 throw new \RuntimeException('Submit button not found on page', 0, $e);
+            }
+
+            // Wait for login to complete
+            sleep(3);
+
+            // Navigate to steps page with today's date
+            $today = now()->format('Y-m-d');
+            $stepsUrl = "https://connect.garmin.com/modern/steps/{$today}";
+            $page->navigate($stepsUrl)->waitForNavigation();
+
+            // Wait for JavaScript to execute and page to be ready
+            sleep(3);
+
+            // Find the div with class starting with "HealthStatGauge_gaugeLabelPrimary__"
+            $evaluation = $page->evaluate('
+                (function() {
+                    const elements = document.querySelectorAll("div[class*=\'HealthStatGauge_gaugeLabelPrimary__\']");
+                    if (elements.length > 0) {
+                        return elements[0].textContent.trim();
+                    }
+                    return null;
+                })();
+            ');
+
+            $value = $evaluation->getReturnValue();
+
+            if ($value !== null) {
+
+                Step::create([
+                    'amount' => (int) Str::replace(',', '', $value),
+                ]);
             }
         } finally {
             $browser->close();
