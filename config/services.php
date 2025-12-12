@@ -45,4 +45,9 @@ return [
         'verify_token' => env('STRAVA_VERIFY_TOKEN'),
     ],
 
+    'garmin' => [
+        'username' => env('GARMIN_USERNAME'),
+        'password' => env('GARMIN_PASSWORD'),
+    ]
+
 ];
