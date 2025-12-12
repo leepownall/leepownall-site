@@ -1,7 +1,7 @@
 import { Head, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
-    const { appUrl } = usePage().props;
+    const { appUrl, currentYear } = usePage().props;
 
     return (
         <>
@@ -28,11 +28,11 @@ export default function Layout({ children }) {
                 <meta name="twitter:description" content="A Senior Developer from the West Midlands, currently building things in Laravel." />
                 <meta name="twitter:image" content={`${appUrl}/og-image.png`} />
             </Head>
-            <div className="min-h-screen flex flex-col">
-                <main className="max-w-2xl p-4 sm:p-8 mx-auto flex-1">{children}</main>
-                <footer className="sticky bottom-0 bg-background mt-auto">
-                    <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center border-t border-border/50">
-                        <span className="text-sm text-muted-foreground">© 2025 Lee Pownall</span>
+            <div className="flex min-h-screen flex-col">
+                <main className="mx-auto max-w-2xl flex-1 p-4 sm:p-8">{children}</main>
+                <footer className="sticky bottom-0 mt-auto bg-background">
+                    <div className="mx-auto flex max-w-2xl items-center justify-between border-t border-border/50 px-4 py-4 sm:px-8">
+                        <span className="text-sm text-muted-foreground">© {currentYear} Lee Pownall</span>
                         <nav className="flex gap-3">
                             <a
                                 href="https://x.com/leepownall"
@@ -58,10 +58,7 @@ export default function Layout({ children }) {
                             >
                                 LinkedIn
                             </a>
-                            <a
-                                href="mailto:lee@pownall.uk"
-                                className="text-sm text-muted-foreground/70 hover:text-muted-foreground"
-                            >
+                            <a href="mailto:lee@pownall.uk" className="text-sm text-muted-foreground/70 hover:text-muted-foreground">
                                 Email
                             </a>
                         </nav>
