@@ -22,7 +22,7 @@ class FetchStepsJob implements ShouldQueue
 
         try {
             $browser = $browserFactory->createBrowser([
-                'headless' => false,
+                'headless' => true,
                 'userAgent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'customFlags' => [
                     '--disable-blink-features=AutomationControlled',
