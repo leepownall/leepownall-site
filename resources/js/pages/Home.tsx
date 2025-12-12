@@ -44,16 +44,11 @@ export default function Home({ activity }: { activity: Activity }) {
                 </a>
                 .
             </p>
-            <div className="py-4">-</div>
-            <div>
-                <h2 className="text-md font-semibold uppercase">Latest Activity</h2>
-                <div className="mt-4 grid grid-cols-1 gap-2 tracking-tight">
-                    <div className="flex space-x-9">
-                        <Stat heading="Name" value={activity.name} />
-                        <Stat heading="Date" value={activity.started_at} />
-                    </div>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 tracking-tight sm:grid-cols-6">
+            <div className="mt-8">
+                <h2 className="text-md font-semibold">Latest Activity</h2>
+                <div className="mt-4 grid grid-cols-2 gap-2 tracking-tight">
+                    <Stat heading="Name" value={activity.name} />
+                    <Stat heading="Date" value={activity.started_at} />
                     <Stat heading="Distance" value={`${activity.distance} km`} visible={activity.type === 'Run'} />
                     <Stat heading="Elapsed Time" value={activity.elapsed_time} />
                     <Stat heading="Moving Time" value={activity.moving_time} />
