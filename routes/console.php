@@ -1,10 +1,10 @@
 <?php
 
-use App\Jobs\FetchStepsJob;
+use App\Console\Commands\FetchStepsCommand;
 use Spatie\WebhookClient\Models\WebhookCall;
 
 Schedule::command('model:prune', [
     '--model' => [WebhookCall::class],
 ])->daily();
 
-//Schedule::command(FetchStepsJob::class)->hourly();
+Schedule::command(FetchStepsCommand::class)->hourly();
