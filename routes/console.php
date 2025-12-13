@@ -10,5 +10,5 @@ Schedule::command('model:prune', [
 ])->daily();
 
 Schedule::command(FetchSleepCommand::class)->dailyAt('9:00');
-Schedule::command(FetchStepsCommand::class)->hourly();
-Schedule::command(FetchBodyBatteryCommand::class)->hourly();
+Schedule::command(FetchStepsCommand::class)->hourly()->between('8:00', '00:00');
+Schedule::command(FetchBodyBatteryCommand::class)->hourly()->between('8:00', '00:00');
