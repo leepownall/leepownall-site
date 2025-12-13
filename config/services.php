@@ -48,6 +48,11 @@ return [
     'garmin' => [
         'username' => env('GARMIN_USERNAME'),
         'password' => env('GARMIN_PASSWORD'),
-    ]
+    ],
+
+    'browser' => [
+        'chrome_binary' => env('CHROME_BINARY', 'chromium-browser'),
+        'headless' => env('HEADLESS', true),
+    ],
 
 ];

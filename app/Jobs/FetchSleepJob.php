@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Sleep;
-use App\Models\Step;
 use HeadlessChromium\BrowserFactory;
 use HeadlessChromium\Exception\ElementNotFoundException;
 use Illuminate\Bus\Queueable;
@@ -15,15 +14,22 @@ use Illuminate\Support\Str;
 
 class FetchSleepJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
+
+    public int $timeout = 120;
+
+    public int $tries = 3;
 
     public function handle(): void
     {
-        $browserFactory = new BrowserFactory('chromium-browser');
+        $browserFactory = new BrowserFactory(config('services.browser.chrome_binary'));
 
         try {
             $browser = $browserFactory->createBrowser([
-                'headless' => true,
+                'headless' => config('services.browser.headless'),
                 'userAgent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'customFlags' => [
                     '--disable-blink-features=AutomationControlled',
