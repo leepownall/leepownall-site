@@ -9,6 +9,6 @@ Schedule::command('model:prune', [
     '--model' => [WebhookCall::class],
 ])->daily();
 
-Schedule::command(FetchSleepCommand::class)->dailyAt('8:30');
-Schedule::command(FetchStepsCommand::class)->hourly()->between('8:00', '00:00');
-Schedule::command(FetchBodyBatteryCommand::class)->hourlyAt('10')->between('8:00', '00:00');
+//Schedule::command(FetchSleepCommand::class)->dailyAt('8:30');
+//Schedule::command(FetchStepsCommand::class)->hourly()->between('8:00', '00:00');
+//Schedule::command(FetchBodyBatteryCommand::class)->hourlyAt('10')->between('8:00', '00:00');
