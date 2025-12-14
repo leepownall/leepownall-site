@@ -26,6 +26,7 @@ class FetchSleepJob implements ShouldQueue
     public function handle(): void
     {
         $browserFactory = new BrowserFactory(config('services.browser.chrome_binary'));
+        $browser = null;
 
         try {
             $browser = $browserFactory->createBrowser([
@@ -119,7 +120,9 @@ class FetchSleepJob implements ShouldQueue
                 ]);
             }
         } finally {
-            $browser->close();
+            if ($browser !== null) {
+                $browser->close();
+            }
         }
     }
 }
