@@ -1,6 +1,8 @@
 import Layout from '@/Layout';
 import Stat from '@/components/Activity/Stat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { StatWithIcon } from '@/components/ui/stat-with-icon';
+import { Footprints, Moon, BatteryMedium } from 'lucide-react';
 
 type Activity = {
     name: string;
@@ -14,7 +16,22 @@ type Activity = {
 
 type ActivityType = 'Run' | 'WeightTraining';
 
-export default function Home({ activity, steps, sleep, bodyBattery }: { activity: Activity, steps: number, sleep: number, bodyBattery: number }) {
+type StatData = {
+    value: string;
+    updated_at?: string;
+};
+
+export default function Home({
+    activity,
+    steps,
+    sleep,
+    bodyBattery,
+}: {
+    activity: Activity;
+    steps: StatData;
+    sleep: StatData;
+    bodyBattery: StatData;
+}) {
     return (
         <Layout>
             <div className="flex items-center space-x-4">
@@ -29,13 +46,25 @@ export default function Home({ activity, steps, sleep, bodyBattery }: { activity
             </div>
             <p className="mt-6 leading-7 tracking-tight">A Senior Developer from the West Midlands, currently building things in Laravel. I also enjoy running, currently focusing on 5k, 10k and half marathon distances.</p>
 
-            <div className="mt-8">
-                <h2 className="text-md font-semibold">Stats</h2>
-                <div className="mt-4 grid grid-cols-3 gap-2 tracking-tight">
-                    <Stat heading="Steps" value={steps} />
-                    <Stat heading="Sleep Score" value={sleep} />
-                    <Stat heading="Body Battery" value={bodyBattery} />
-                </div>
+            <div className="mt-8 flex space-x-6 tracking-tight">
+                <StatWithIcon
+                    icon={Footprints}
+                    value={steps.value}
+                    iconClassName="text-blue-500"
+                    tooltip={steps.updated_at ? `Updated: ${new Date(steps.updated_at).toLocaleString()}` : undefined}
+                />
+                <StatWithIcon
+                    icon={Moon}
+                    value={sleep.value}
+                    iconClassName="text-indigo-500"
+                    tooltip={sleep.updated_at ? `Updated: ${new Date(sleep.updated_at).toLocaleString()}` : undefined}
+                />
+                <StatWithIcon
+                    icon={BatteryMedium}
+                    value={bodyBattery.value}
+                    iconClassName="text-green-500"
+                    tooltip={bodyBattery.updated_at ? `Updated: ${new Date(bodyBattery.updated_at).toLocaleString()}` : undefined}
+                />
             </div>
 
             <div className="mt-8">
