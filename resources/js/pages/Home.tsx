@@ -46,27 +46,6 @@ export default function Home({
             </div>
             <p className="mt-6 leading-7 tracking-tight">A Senior Developer from the West Midlands, currently building things in Laravel. I also enjoy running, currently focusing on 5k, 10k and half marathon distances.</p>
 
-            <div className="mt-8 flex space-x-6 tracking-tight">
-                <StatWithIcon
-                    icon={Footprints}
-                    value={steps.value}
-                    iconClassName="text-blue-500"
-                    tooltip={steps.updated_at ? `Updated: ${new Date(steps.updated_at).toLocaleString()}` : undefined}
-                />
-                <StatWithIcon
-                    icon={Moon}
-                    value={sleep.value}
-                    iconClassName="text-indigo-500"
-                    tooltip={sleep.updated_at ? `Updated: ${new Date(sleep.updated_at).toLocaleString()}` : undefined}
-                />
-                <StatWithIcon
-                    icon={BatteryMedium}
-                    value={bodyBattery.value}
-                    iconClassName="text-green-500"
-                    tooltip={bodyBattery.updated_at ? `Updated: ${new Date(bodyBattery.updated_at).toLocaleString()}` : undefined}
-                />
-            </div>
-
             <div className="mt-8">
                 <h2 className="text-md font-semibold">Latest Activity</h2>
                 <div className="mt-4 grid grid-cols-2 gap-2 tracking-tight">

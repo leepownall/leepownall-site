@@ -17,23 +17,7 @@ class HomeController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $stepsModel = Step::query()->latest()->first();
-        $sleepModel = Sleep::query()->latest()->first();
-        $bodyBatteryModel = BodyBattery::query()->latest()->first();
-
         return Inertia::render('Home', [
-            'steps' => [
-                'value' => number_format($stepsModel?->amount ?? 0),
-                'updated_at' => $stepsModel?->updated_at,
-            ],
-            'sleep' => [
-                'value' => number_format($sleepModel?->amount ?? 0),
-                'updated_at' => $sleepModel?->updated_at,
-            ],
-            'bodyBattery' => [
-                'value' => number_format($bodyBatteryModel?->amount ?? 0),
-                'updated_at' => $bodyBatteryModel?->updated_at,
-            ],
             'activity' => ActivityResource::make(
                 Activity::query()
                     ->select([
