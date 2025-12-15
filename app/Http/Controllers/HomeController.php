@@ -4,14 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ActivityResource;
 use App\Models\Activity;
-use App\Models\BodyBattery;
-use App\Models\Sleep;
-use App\Models\Step;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-
-use function number_format;
 
 class HomeController extends Controller
 {
