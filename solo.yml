@@ -1,0 +1,32 @@
+# Visit https://soloterm.com to learn more
+name: leepownall
+icon: null
+processes:
+  Pail:
+    command: php artisan pail
+    working_dir: null
+    auto_start: false
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
+  Horizon:
+    command: php artisan horizon:listen
+    working_dir: null
+    auto_start: false
+    auto_restart: true
+    restart_when_changed: []
+    env: {}
+  npm:dev:
+    command: npm run dev
+    working_dir: null
+    auto_start: true
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
+  Scheduler:
+    command: php artisan schedule:work
+    working_dir: null
+    auto_start: false
+    auto_restart: false
+    restart_when_changed: []
+    env: {}

@@ -1,10 +1,26 @@
 {
     "agents": [
-        "cursor"
+        "codex"
     ],
-    "editors": [
-        "cursor"
+    "guidelines": true,
+    "herd_mcp": true,
+    "mcp": true,
+    "packages": [
+        "filament/filament",
+        "inertiajs/inertia-laravel",
+        "laravel/wayfinder",
+        "saloonphp/laravel-plugin",
+        "laravel/horizon",
+        "laravel/nightwatch"
     ],
-    "guidelines": [],
-    "herd_mcp": true
+    "sail": false,
+    "skills": [
+        "wayfinder-development",
+        "pest-testing",
+        "inertia-react-development",
+        "tailwindcss-development",
+        "configuring-horizon",
+        "configure-nightwatch",
+        "saloon-development"
+    ]
 }
