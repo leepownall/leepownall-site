@@ -6,7 +6,6 @@
     "herd_mcp": true,
     "mcp": true,
     "packages": [
-        "filament/filament",
         "inertiajs/inertia-laravel",
         "laravel/wayfinder",
         "laravel/horizon",
