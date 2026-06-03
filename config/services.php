@@ -35,16 +35,6 @@ return [
         ],
     ],
 
-    'strava' => [
-        'client_id' => env('STRAVA_CLIENT_ID'),
-        'client_secret' => env('STRAVA_CLIENT_SECRET'),
-        'default_scopes' => \Illuminate\Support\Arr::wrap(env('STRAVA_DEFAULT_SCOPES')),
-        'redirect_uri' => env('STRAVA_REDIRECT_URI'),
-        'token_endpoint' => env('STRAVA_TOKEN_ENDPOINT'),
-        'authorize_endpoint' => env('STRAVA_AUTHORIZE_ENDPOINT'),
-        'verify_token' => env('STRAVA_VERIFY_TOKEN'),
-    ],
-
     'garmin' => [
         'username' => env('GARMIN_USERNAME'),
         'password' => env('GARMIN_PASSWORD'),

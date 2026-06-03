@@ -1,7 +1,10 @@
 import { Head, usePage } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 
-export default function Layout({ children }) {
-    const { appUrl, currentYear } = usePage().props;
+import type { SharedData } from '@/types';
+
+export default function Layout({ children }: { children: ReactNode }) {
+    const { appUrl, currentYear } = usePage<SharedData>().props;
 
     return (
         <>

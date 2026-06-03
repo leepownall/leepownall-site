@@ -9,7 +9,6 @@
         "filament/filament",
         "inertiajs/inertia-laravel",
         "laravel/wayfinder",
-        "saloonphp/laravel-plugin",
         "laravel/horizon",
         "laravel/nightwatch"
     ],
@@ -20,7 +19,6 @@
         "inertia-react-development",
         "tailwindcss-development",
         "configuring-horizon",
-        "configure-nightwatch",
-        "saloon-development"
+        "configure-nightwatch"
     ]
 }
