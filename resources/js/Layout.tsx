@@ -3,8 +3,9 @@ import type { ReactNode } from 'react';
 
 import type { SharedData } from '@/types';
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function Layout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
     const { appUrl, currentYear } = usePage<SharedData>().props;
+    const width = wide ? 'max-w-7xl' : 'max-w-2xl';
 
     return (
         <>
@@ -32,9 +33,9 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <meta name="twitter:image" content={`${appUrl}/og-image.png`} />
             </Head>
             <div className="flex min-h-screen flex-col">
-                <main className="mx-auto max-w-2xl flex-1 p-4 sm:p-8">{children}</main>
-                <footer className="sticky bottom-0 mt-auto bg-background">
-                    <div className="mx-auto flex max-w-2xl items-center justify-between border-t border-border/50 px-4 py-4 sm:px-8">
+                <main className={`mx-auto w-full flex-1 p-4 sm:p-8 ${width}`}>{children}</main>
+                <footer className="mt-auto bg-background xl:sticky xl:bottom-0">
+                    <div className={`mx-auto flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/50 px-4 py-4 sm:px-8 ${width}`}>
                         <span className="text-sm text-muted-foreground">© {currentYear} Lee Pownall</span>
                         <nav className="flex gap-3">
                             <a
