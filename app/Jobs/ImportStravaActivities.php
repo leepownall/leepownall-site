@@ -72,18 +72,12 @@ class ImportStravaActivities implements ShouldQueue
      */
     private function activity(array $row): ?array
     {
-        $type = strtolower(trim((string) ($row['activity type'] ?? '')));
-
-        if (! in_array($type, ['run', 'trail run', 'virtual run'], true)) {
-            return null;
-        }
-
         $distance = (int) round((float) ($row['distance'] ?? 0));
         $movingTime = (int) round((float) ($row['moving time'] ?? 0));
         $stravaId = (int) ($row['activity id'] ?? 0);
         $startedAt = trim((string) ($row['activity date'] ?? ''));
 
-        if ($stravaId === 0 || $distance < 100 || $movingTime < 60 || $startedAt === '') {
+        if (! Activity::isKeptRun((string) ($row['activity type'] ?? ''), $distance, $movingTime) || $stravaId === 0 || $startedAt === '') {
             return null;
         }
 

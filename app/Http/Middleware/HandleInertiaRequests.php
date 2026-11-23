@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'currentYear' => now()->format('Y'),
+            'routesSynced' => fn (): ?int => $request->session()->get('routesSynced'),
         ];
     }
 }

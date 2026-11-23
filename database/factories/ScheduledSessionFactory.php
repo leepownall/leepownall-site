@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\ScheduledSession;
+use App\Models\TrainingWeek;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,11 +17,8 @@ class ScheduledSessionFactory extends Factory
     public function definition(): array
     {
         return [
-            'date' => fake()->unique()->dateTimeBetween('2026-10-05', '2027-04-25')->format('Y-m-d'),
-            'kind' => 'plan',
-            'week_index' => 1,
-            'template' => 1,
-            'phase' => 'Prep',
+            'training_week_id' => TrainingWeek::factory(),
+            'date' => '2027-01-11',
             'is_rest' => false,
             'name' => 'Easy run',
             'lines' => ['6 km'],

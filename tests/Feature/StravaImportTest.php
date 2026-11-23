@@ -7,7 +7,12 @@ use App\Models\ScheduledSession;
 use App\Training\MarathonPlan;
 use App\Training\RunDuration;
 use App\Training\RunEffort;
+use App\Training\WeekKind;
 use Illuminate\Support\Facades\Queue;
+
+beforeEach(function () {
+    MarathonPlan::replace(sampleTrainingPlan());
+});
 
 it('imports runs and stores average paces', function () {
     $this->travelTo('2026-10-06');
@@ -135,7 +140,7 @@ it('stores marathon and tempo paces when recent runs do not include them', funct
     expect(RunPace::query()->where('effort', RunEffort::Easy)->value('seconds_per_kilometre'))->toBe(391)
         ->and(RunPace::query()->where('effort', RunEffort::MarathonPace)->value('seconds_per_kilometre'))->toBe(384)
         ->and(RunPace::query()->where('effort', RunEffort::Tempo)->value('seconds_per_kilometre'))->toBe(360)
-        ->and(ScheduledSession::query()->whereDate('date', '2027-02-20')->value('estimated_minutes'))->toBe(168);
+        ->and(ScheduledSession::query()->whereDate('date', '2026-10-10')->value('estimated_minutes'))->toBe(104);
 });
 
 it('prefers a recorded effort over the stored target pace', function () {
@@ -202,7 +207,7 @@ it('uses the easy pace when a faster effort has no average yet', function () {
 });
 
 it('uses the minutes already written into a speed session', function () {
-    $page = MarathonPlan::present(3, now());
+    $page = MarathonPlan::present(WeekKind::Prep, 2, now(), includePrivate: true);
 
     expect($page['days'][2]['session']['name'])->toBe('Speed session')
         ->and($page['days'][2]['estimatedMinutes'])->toBe(37);

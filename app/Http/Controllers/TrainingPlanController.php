@@ -3,26 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Training\MarathonPlan;
+use App\Training\WeekKind;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class TrainingPlanController extends Controller
 {
-    public function __invoke(?int $week = null): Response
+    public function __invoke(Request $request, ?int $week = null): Response
     {
         if ($week === null) {
-            return Inertia::render('Training', MarathonPlan::presentFor(now()));
+            $page = MarathonPlan::presentFor(now(), $request->user() !== null);
+
+            return $page === null ? Inertia::render('TrainingEmpty') : Inertia::render('Training', $page);
         }
 
-        abort_unless($week >= 1 && $week <= MarathonPlan::LENGTH, 404);
+        $page = MarathonPlan::present(WeekKind::Plan, $week, now(), $request->user() !== null);
 
-        return Inertia::render('Training', MarathonPlan::present($week, now()));
+        abort_if($page === null, 404);
+
+        return Inertia::render('Training', $page);
     }
 
-    public function prep(int $prep): Response
+    public function prep(Request $request, int $prep): Response
     {
-        abort_unless($prep >= 1 && $prep <= MarathonPlan::prepLength(), 404);
+        $page = MarathonPlan::present(WeekKind::Prep, $prep, now(), $request->user() !== null);
 
-        return Inertia::render('Training', MarathonPlan::presentPrep($prep, now()));
+        abort_if($page === null, 404);
+
+        return Inertia::render('Training', $page);
     }
 }

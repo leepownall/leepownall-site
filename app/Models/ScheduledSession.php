@@ -15,11 +15,8 @@ class ScheduledSession extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'training_week_id',
         'date',
-        'kind',
-        'week_index',
-        'template',
-        'phase',
         'is_rest',
         'name',
         'lines',
@@ -33,9 +30,7 @@ class ScheduledSession extends Model
     protected function casts(): array
     {
         return [
-            'date' => 'date',
-            'week_index' => 'integer',
-            'template' => 'integer',
+            'date' => 'immutable_date',
             'is_rest' => 'boolean',
             'lines' => 'array',
             'has_strength' => 'boolean',

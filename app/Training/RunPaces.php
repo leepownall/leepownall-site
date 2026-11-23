@@ -44,7 +44,7 @@ final class RunPaces
             );
         }
 
-        MarathonPlan::sync();
+        MarathonPlan::refreshEstimates();
     }
 
     /**

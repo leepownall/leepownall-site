@@ -1,10 +1,12 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 
+import { index as stravaRoutes } from '@/actions/App/Http/Controllers/StravaRouteController';
 import Layout from '@/Layout';
 import { cn } from '@/lib/utils';
 import { training } from '@/routes';
 import { prep } from '@/routes/training';
+import type { SharedData } from '@/types';
 
 type Session = {
     name: string;
@@ -24,7 +26,43 @@ type TrainingDay = {
     fixedSeconds: number;
     efforts: { effort: string; metres: number; pace: number }[];
     similarRuns: { name: string; minutes: number; pace: number; date: string }[];
+    actual: ActualRun[];
+    status: 'done' | 'missed' | 'extra' | null;
+    races: { name: string; km: number; kind: RaceKind }[];
 };
+
+type ActualRun = {
+    name: string;
+    metres: number;
+    minutes: number;
+    pace: number;
+    url: string;
+};
+
+type RaceKind = 'target' | 'race';
+
+const RACE_LABELS: Record<RaceKind, string> = {
+    target: 'Target race',
+    race: 'Race',
+};
+
+function totalMetres(runs: { metres: number }[]): number {
+    return runs.reduce((sum, run) => sum + run.metres, 0);
+}
+
+function kilometres(metres: number): number {
+    return Math.round(metres / 100) / 10;
+}
+
+function countdown(daysToGo: number): string {
+    if (daysToGo === 0) {
+        return 'today';
+    }
+
+    const days = `${Math.abs(daysToGo)} ${Math.abs(daysToGo) === 1 ? 'day' : 'days'}`;
+
+    return daysToGo > 0 ? `${days} to go` : `${days} ago`;
+}
 
 type WeekTarget = {
     kind: 'prep' | 'plan';
@@ -35,11 +73,11 @@ type PlanWeek = {
     id: string;
     kind: 'prep' | 'plan';
     week: number;
-    label: number;
     phase: string;
     km: number;
     offset: number;
     range: string;
+    race: RaceKind | null;
 };
 
 type TrainingProps = {
@@ -51,6 +89,7 @@ type TrainingProps = {
     previous: WeekTarget | null;
     next: WeekTarget | null;
     days: TrainingDay[];
+    targetRace: { name: string; date: string; km: number; daysToGo: number } | null;
     weeks: PlanWeek[];
 };
 
@@ -204,7 +243,7 @@ function PlanStrip({ weeks, current }: { weeks: PlanWeek[]; current: string }) {
                                     ref={week.id === current ? currentRef : undefined}
                                     href={weekHref({ kind: week.kind, week: week.week })}
                                     prefetch
-                                    title={`${week.range} · ${week.km} km`}
+                                    title={[week.range, `${week.km} km`, week.race && RACE_LABELS[week.race].toLowerCase()].filter(Boolean).join(' · ')}
                                     className={cn(
                                         'flex h-12 w-16 shrink-0 snap-center items-center justify-center rounded-lg text-sm transition-colors xl:h-[22px] xl:w-auto xl:min-w-0 xl:flex-1 xl:snap-align-none xl:rounded xl:text-[11px]',
                                         week.id === current
@@ -214,13 +253,72 @@ function PlanStrip({ weeks, current }: { weeks: PlanWeek[]; current: string }) {
                                               : 'bg-[oklch(0.95_0_0)] text-[oklch(0.45_0_0)] hover:bg-[oklch(0.9_0_0)]',
                                     )}
                                 >
-                                    {week.label}
+                                    {week.week}
+                                    {week.race !== null ? (
+                                        <span
+                                            aria-label={RACE_LABELS[week.race]}
+                                            className={cn(
+                                                'ml-1 inline-block size-1.5 rounded-full',
+                                                week.race === 'target' ? 'bg-red-600' : 'bg-current opacity-60',
+                                            )}
+                                        />
+                                    ) : null}
                                 </Link>
                             ))}
                         </div>
                     </div>
                 ))}
             </div>
+        </div>
+    );
+}
+
+function ActualRuns({ day, planned }: { day: TrainingDay; planned: number | null }) {
+    if (day.status === 'missed') {
+        return (
+            <div className="flex items-center gap-2 border-t border-dashed border-border pt-3 text-[13px] text-red-600">
+                <span className="size-[7px] rounded-full bg-red-600" />
+                Missed
+            </div>
+        );
+    }
+
+    if (day.actual.length === 0) {
+        return null;
+    }
+
+    const metres = totalMetres(day.actual);
+    const difference = planned === null ? null : kilometres(metres - planned * 1000);
+
+    return (
+        <div className="flex flex-col gap-1.5 border-t border-border pt-3">
+            <span className="flex items-baseline justify-between gap-2 text-[11px] tracking-wider text-muted-foreground uppercase">
+                {day.status === 'extra' ? 'Extra run' : 'Done'}
+                {difference !== null && difference !== 0 ? (
+                    <span className="tracking-normal whitespace-nowrap normal-case tabular-nums">
+                        {difference > 0 ? '+' : ''}
+                        {difference} km vs plan
+                    </span>
+                ) : null}
+            </span>
+            {day.actual.map((run) => (
+                <a
+                    key={run.url}
+                    href={run.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col rounded-md text-[13px] leading-snug hover:text-foreground"
+                >
+                    <span className="flex items-baseline gap-1.5 font-medium whitespace-nowrap">
+                        <span className="size-[7px] flex-none -translate-y-px rounded-full bg-foreground" />
+                        {kilometres(run.metres)} km
+                    </span>
+                    <span className="pl-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
+                        {formatDuration(run.minutes)} · {paceClock(run.pace)}/km
+                    </span>
+                    <span className="truncate pl-[13px] text-muted-foreground">{run.name}</span>
+                </a>
+            ))}
         </div>
     );
 }
@@ -638,7 +736,8 @@ function StrengthSession({ minutes, featured = false }: { minutes: number; featu
     );
 }
 
-export default function Training({ week, caption, phase, range, current, previous, next, days, weeks }: TrainingProps) {
+export default function Training({ week, caption, phase, range, current, previous, next, days, targetRace, weeks }: TrainingProps) {
+    const { auth } = usePage<SharedData>().props;
     const [showStrength, setShowStrength] = useState(strengthPreference);
     const [returnBy, setReturnBy] = useState(returnByPreference);
     const [paceOffsets, setPaceOffsets] = useState(paceOffsetsPreference);
@@ -646,12 +745,13 @@ export default function Training({ week, caption, phase, range, current, previou
     const runs = days.filter((day) => day.session !== null).length;
     const strengthSessions = showStrength ? days.filter((day) => day.strength !== null).length : 0;
     const distance = parsed.reduce((sum, session) => sum + (session?.total ?? 0), 0);
+    const doneMetres = days.reduce((sum, day) => sum + totalMetres(day.actual), 0);
+    const hasStarted = days.some((day) => day.isToday || day.status !== null);
     const hasTimed = parsed.some(
         (session, index) =>
             session !== null &&
             session.total === null &&
-            days[index].session?.name !== 'Race day' &&
-            days[index].session?.name !== 'Stabridge Stagger',
+            days[index].races.length === 0,
     );
     const usedTypes = new Set(parsed.flatMap((session) => session?.segments.map((segment) => segment.type) ?? []));
 
@@ -699,6 +799,13 @@ export default function Training({ week, caption, phase, range, current, previou
                             <span className="font-['Instrument_Serif'] text-5xl leading-none font-normal xl:text-6xl">Week {week}</span>
                             <span className="text-[15px] text-muted-foreground">{caption}</span>
                         </h1>
+                        {targetRace ? (
+                            <p className="text-sm text-muted-foreground">
+                                <span className="font-medium text-foreground">{targetRace.name}</span> · {targetRace.date} · {targetRace.km} km
+                                {' · '}
+                                {countdown(targetRace.daysToGo)}
+                            </p>
+                        ) : null}
                     </header>
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between xl:justify-end xl:gap-8">
                         <div className="flex flex-col gap-0.5 sm:items-end">
@@ -707,6 +814,7 @@ export default function Training({ week, caption, phase, range, current, previou
                                 <Unit>km</Unit>
                             </span>
                             <span className="text-[13px] text-pretty text-muted-foreground sm:text-right">
+                                {auth.user && hasStarted ? `${kilometres(doneMetres)} km done · ` : ''}
                                 {runs} {runs === 1 ? 'run' : 'runs'}
                                 {hasTimed ? ' · plus speed session' : ''}
                                 {strengthSessions > 0 ? ` · ${strengthSessions} strength ${strengthSessions === 1 ? 'session' : 'sessions'}` : ''}
@@ -758,7 +866,6 @@ export default function Training({ week, caption, phase, range, current, previou
                         {days.map((day, index) => {
                             const [weekday, dayOfMonth, month] = day.label.split(' ');
                             const session = parsed[index];
-                            const isRace = day.session?.name === 'Race day';
                             const strength = showStrength ? day.strength : null;
                             const isEmpty = day.session === null && !day.isRest && strength === null;
                             const compact = day.isRest || isEmpty;
@@ -797,21 +904,25 @@ export default function Training({ week, caption, phase, range, current, previou
                                         ) : null}
                                     </div>
 
-                                    {isRace ? (
-                                        <div className="flex flex-1 flex-col justify-end gap-1">
-                                            <span className="text-[15px] font-medium">Race day</span>
-                                            <span className="font-['Instrument_Serif'] text-[44px] leading-none">
-                                                42.2
-                                                <Unit>km</Unit>
-                                            </span>
-                                        </div>
-                                    ) : day.session?.name === 'Stabridge Stagger' ? (
-                                        <div className="flex flex-1 flex-col justify-end gap-1">
-                                            <span className="text-[15px] font-medium">Stabridge Stagger</span>
-                                            <span className="font-['Instrument_Serif'] text-[44px] leading-none">
-                                                10
-                                                <Unit>miles</Unit>
-                                            </span>
+                                    {day.races.length > 0 ? (
+                                        <div className="flex flex-1 flex-col justify-end gap-4">
+                                            {day.races.map((race) => (
+                                                <div key={race.name} className="flex flex-col gap-1">
+                                                    <span
+                                                        className={cn(
+                                                            'self-start rounded-full px-2 py-0.5 text-[11px] font-medium tracking-wider uppercase',
+                                                            race.kind === 'target' ? 'bg-foreground text-background' : 'border border-border',
+                                                        )}
+                                                    >
+                                                        {RACE_LABELS[race.kind]}
+                                                    </span>
+                                                    <span className="text-[15px] font-medium">{race.name}</span>
+                                                    <span className="font-['Instrument_Serif'] text-[44px] leading-none">
+                                                        {race.km}
+                                                        <Unit>km</Unit>
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
                                     ) : day.session && session ? (
                                         <div className="flex flex-1 flex-col gap-3">
@@ -867,7 +978,10 @@ export default function Training({ week, caption, phase, range, current, previou
                                             <span className="text-[13px] text-muted-foreground">Nothing planned</span>
                                         </div>
                                     )}
-                                    <SessionFooter day={day} returnBy={returnBy} paceOffsets={paceOffsets} onPaceOffset={updatePaceOffset} />
+                                    <ActualRuns day={day} planned={session?.total ?? null} />
+                                    {auth.user && (
+                                        <SessionFooter day={day} returnBy={returnBy} paceOffsets={paceOffsets} onPaceOffset={updatePaceOffset} />
+                                    )}
                                 </li>
                             );
                         })}
@@ -890,15 +1004,22 @@ export default function Training({ week, caption, phase, range, current, previou
                         <span />
                     )}
                     <div className="flex flex-wrap items-center justify-end gap-4">
-                        <label className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Back by</span>
-                            <input
-                                type="time"
-                                value={returnBy}
-                                onChange={(event) => updateReturnBy(event.target.value)}
-                                className="rounded-md border border-border bg-transparent px-2 py-1 text-sm"
-                            />
-                        </label>
+                        {auth.user && (
+                            <>
+                                <Link href={stravaRoutes()} className="text-sm text-muted-foreground hover:text-foreground">
+                                    Routes
+                                </Link>
+                                <label className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">Back by</span>
+                                    <input
+                                        type="time"
+                                        value={returnBy}
+                                        onChange={(event) => updateReturnBy(event.target.value)}
+                                        className="rounded-md border border-border bg-transparent px-2 py-1 text-sm"
+                                    />
+                                </label>
+                            </>
+                        )}
                         <button
                             type="button"
                             role="switch"
