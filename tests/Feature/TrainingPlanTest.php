@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Activity;
 use App\Training\MarathonPlan;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -37,6 +38,8 @@ it('shows the current build-up week before the plan starts', function () {
             ->where('days.3.strength', 30)
             ->where('days.5.session.name', 'Long run')
             ->where('days.5.session.lines.0', '16 km')
+            ->where('days.0.estimatedMinutes', null)
+            ->where('days.1.estimatedMinutes', null)
         )
         ->assertDontSee('Circuit')
         ->assertDontSee('Parkes')
@@ -77,6 +80,42 @@ it('eases the week before the plan starts', function () {
             ->where('days.5.session.lines', ['13 km easy'])
             ->where('next.kind', 'plan')
             ->where('next.week', 1)
+        );
+});
+
+it('includes a leave by estimate for a run and omits it on a rest day', function () {
+    Activity::factory()->create();
+
+    $this->get(route('training', ['week' => 1]))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('days.0.session.name', 'Easy run')
+            ->where('days.0.estimatedMinutes', 40)
+            ->where('days.0.estimatedPace', 400)
+            ->where('days.0.estimatedMetres', 6000)
+            ->where('days.0.fixedSeconds', 0)
+            ->where('days.0.efforts', [[
+                'effort' => 'easy',
+                'metres' => 6000,
+                'pace' => 400,
+            ]])
+            ->where('days.2.efforts', [
+                ['effort' => 'easy', 'metres' => 4000, 'pace' => 400],
+                ['effort' => 'tempo', 'metres' => 3000, 'pace' => 360],
+            ])
+            ->where('days.0.similarRuns', [[
+                'name' => 'Easy run',
+                'minutes' => 40,
+                'pace' => 400,
+                'date' => now()->format('j M'),
+            ]])
+            ->where('days.1.isRest', true)
+            ->where('days.1.estimatedMinutes', null)
+            ->where('days.1.estimatedPace', null)
+            ->where('days.1.estimatedMetres', null)
+            ->where('days.1.fixedSeconds', 0)
+            ->where('days.1.efforts', [])
+            ->where('days.1.similarRuns', [])
         );
 });
 
