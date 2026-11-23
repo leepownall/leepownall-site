@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Prepares an Amp orb (Debian 12 or 13) for leepownall-site: PHP 8.5, Composer, PHP/JS
+# dependencies, a local .env with an SQLite database, migrations, and built assets.
+# Idempotent: a warm (stale-snapshot) run skips installs that are already satisfied.
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+export DEBIAN_FRONTEND=noninteractive
+export COMPOSER_NO_INTERACTION=1
+
+step() {
+    local label="$1"
+    shift
+    local started=$SECONDS
+    echo "==> ${label}"
+    "$@"
+    echo "<== ${label} ($((SECONDS - started))s)"
+}
+
+php_packages=(
+    php8.5-cli php8.5-bcmath php8.5-curl php8.5-intl php8.5-mbstring
+    php8.5-readline php8.5-redis php8.5-sqlite3 php8.5-xml php8.5-zip
+    unzip sqlite3
+)
+
+missing_packages() {
+    local package
+    for package in "$@"; do
+        dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed' || echo "$package"
+    done
+}
+
+install_system_packages() {
+    local missing
+    mapfile -t missing < <(missing_packages "${php_packages[@]}")
+    if [ "${#missing[@]}" -eq 0 ]; then
+        echo "system packages already installed"
+        return
+    fi
+
+    local codename
+    codename="$(. /etc/os-release && echo "$VERSION_CODENAME")"
+    if [ ! -f /usr/share/keyrings/debsuryorg-archive-keyring.gpg ]; then
+        curl -fsSL -o /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
+        sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb
+        rm -f /tmp/debsuryorg-archive-keyring.deb
+    fi
+    echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ ${codename} main" \
+        | sudo tee /etc/apt/sources.list.d/sury-php.list >/dev/null
+
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq --no-install-recommends "${missing[@]}"
+}
+
+install_composer() {
+    if command -v composer >/dev/null 2>&1; then
+        echo "composer already installed: $(composer --version 2>/dev/null)"
+        return
+    fi
+
+    curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php
+    sudo php /tmp/composer-setup.php --quiet --install-dir=/usr/local/bin --filename=composer
+    rm -f /tmp/composer-setup.php
+}
+
+check_node() {
+    local pinned
+    pinned="$(tr -d 'v[:space:]' <.nvmrc)"
+    if [ "$(node -p 'process.versions.node.split(".")[0]')" != "${pinned%%.*}" ]; then
+        echo "WARNING: node $(node -v) does not match .nvmrc (v${pinned})" >&2
+    else
+        echo "node $(node -v) matches .nvmrc"
+    fi
+}
+
+write_env() {
+    [ -f .env ] || cp -- .env.example .env
+    grep -q '^APP_KEY=base64:' .env || php artisan key:generate --force --no-interaction
+    [ -f database/database.sqlite ] || touch database/database.sqlite
+}
+
+register_boost_mcp() {
+    # User-level MCP servers run without the per-orb approval that .amp/settings.json servers need.
+    local settings="$HOME/.config/amp/settings.json"
+    mkdir -p "$(dirname "$settings")"
+    [ -s "$settings" ] || echo '{}' >"$settings"
+    jq --arg artisan "$repo_root/artisan" \
+        '.["amp.mcpServers"]["laravel-boost"] = {command: "php", args: [$artisan, "boost:mcp"]}' \
+        "$settings" >"$settings.tmp"
+    mv "$settings.tmp" "$settings"
+}
+
+step "system packages" install_system_packages
+step "composer" install_composer
+step "node" check_node
+step "composer install" composer install --prefer-dist --no-progress
+step "npm ci" bash -c '[ node_modules/.package-lock.json -nt package-lock.json ] && echo "node_modules up to date" || npm ci --no-audit --no-fund'
+step ".env" write_env
+step "migrate" php artisan migrate --force --no-interaction
+step "build assets" npm run build
+step "laravel boost mcp" register_boost_mcp
+
+echo "setup complete"
