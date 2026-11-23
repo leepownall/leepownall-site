@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 import Layout from '@/Layout';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,12 @@ type TrainingDay = {
     isRest: boolean;
     session: Session | null;
     strength: number | null;
+    estimatedMinutes: number | null;
+    estimatedPace: number | null;
+    estimatedMetres: number | null;
+    fixedSeconds: number;
+    efforts: { effort: string; metres: number; pace: number }[];
+    similarRuns: { name: string; minutes: number; pace: number; date: string }[];
 };
 
 type WeekTarget = {
@@ -223,12 +229,392 @@ function Unit({ children }: { children: string }) {
     return <span className="ml-1 font-sans text-sm text-muted-foreground">{children}</span>;
 }
 
+function paceClock(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const remainder = seconds % 60;
+
+    return `${minutes}:${String(remainder).padStart(2, '0')}`;
+}
+
+function durationParts(minutes: number): { hours: number | null; mins: number } {
+    if (minutes < 60) {
+        return { hours: null, mins: minutes };
+    }
+
+    return { hours: Math.floor(minutes / 60), mins: minutes % 60 };
+}
+
+function formatDuration(minutes: number): string {
+    const { hours, mins } = durationParts(minutes);
+
+    return hours === null ? `${mins} min` : `${hours} hr ${mins} min`;
+}
+
+function offsetLabel(offset: number): string {
+    return `${Math.abs(offset)}s ${offset > 0 ? 'slower' : 'faster'}`;
+}
+
+function leaveShift(difference: number, returnBy: string): string {
+    if (difference > 0) {
+        return `${difference} min earlier`;
+    }
+
+    if (difference < 0) {
+        return `${-difference} min later`;
+    }
+
+    return `back by ${returnBy}`;
+}
+
+function canHover(): boolean {
+    return window.matchMedia('(hover: hover)').matches;
+}
+
+const pacePreset = 15;
+const paceStep = 5;
+const slowestOffset = 180;
+const fastestOffset = -120;
+
+function clampPaceOffset(offset: number): number {
+    return Math.min(slowestOffset, Math.max(fastestOffset, offset));
+}
+
+type PaceOffsets = Record<string, number>;
+
+function minutesAtPaces(day: TrainingDay, offsets: PaceOffsets): number | null {
+    if (day.estimatedMinutes === null) {
+        return null;
+    }
+
+    if (day.efforts.length === 0 || day.efforts.every((effort) => (offsets[effort.effort] ?? 0) === 0)) {
+        return day.estimatedMinutes;
+    }
+
+    const seconds = day.efforts.reduce((total, effort) => {
+        const pace = Math.max(effort.pace + (offsets[effort.effort] ?? 0), 60);
+
+        return total + (effort.metres / 1000) * pace;
+    }, day.fixedSeconds);
+
+    return Math.round(seconds / 60);
+}
+
+function paceOffsetsPreference(): PaceOffsets {
+    if (typeof window === 'undefined') {
+        return {};
+    }
+
+    const stored = localStorage.getItem('training-pace-offsets');
+
+    if (stored !== null) {
+        return parsePaceOffsets(stored);
+    }
+
+    const legacy = Number(localStorage.getItem('training-pace-offset'));
+
+    if (!Number.isInteger(legacy)) {
+        return {};
+    }
+
+    return {
+        easy: clampPaceOffset(legacy),
+        'marathon pace': clampPaceOffset(legacy),
+        tempo: clampPaceOffset(legacy),
+        'interval pace': clampPaceOffset(legacy),
+    };
+}
+
+function parsePaceOffsets(stored: string): PaceOffsets {
+    try {
+        const parsed = JSON.parse(stored) as unknown;
+
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            return {};
+        }
+
+        const offsets: PaceOffsets = {};
+
+        for (const [effort, value] of Object.entries(parsed)) {
+            if (typeof value === 'number' && Number.isInteger(value)) {
+                offsets[effort] = clampPaceOffset(value);
+            }
+        }
+
+        return offsets;
+    } catch {
+        return {};
+    }
+}
+
+function effortLabel(effort: string): string {
+    return effort.charAt(0).toUpperCase() + effort.slice(1);
+}
+
+function PaceAdjuster({ effort, offset, onChange }: { effort: string; offset: number; onChange: (offset: number) => void }) {
+    const name = effortLabel(effort);
+
+    return (
+        <div className="flex items-center gap-1">
+            <button
+                type="button"
+                aria-label={`5 seconds slower ${name}`}
+                onClick={() => onChange(clampPaceOffset(offset + paceStep))}
+                className="h-7 rounded-md border border-border px-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+                +5s
+            </button>
+            <div className="flex flex-1 gap-0.5 rounded-md bg-muted p-0.5">
+                {(
+                    [
+                        ['Slower', pacePreset],
+                        ['Calculated', 0],
+                        ['Faster', -pacePreset],
+                    ] as const
+                ).map(([preset, value]) => (
+                    <button
+                        key={preset}
+                        type="button"
+                        aria-label={`${preset} ${name}`}
+                        aria-pressed={offset === value}
+                        onClick={() => onChange(value)}
+                        className={cn(
+                            'h-6 flex-1 rounded-[5px] text-xs transition-colors',
+                            offset === value
+                                ? 'bg-background font-medium text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground',
+                        )}
+                    >
+                        {preset}
+                    </button>
+                ))}
+            </div>
+            <button
+                type="button"
+                aria-label={`5 seconds faster ${name}`}
+                onClick={() => onChange(clampPaceOffset(offset - paceStep))}
+                className="h-7 rounded-md border border-border px-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+                −5s
+            </button>
+        </div>
+    );
+}
+
+function SessionFooter({
+    day,
+    returnBy,
+    paceOffsets,
+    onPaceOffset,
+}: {
+    day: TrainingDay;
+    returnBy: string;
+    paceOffsets: PaceOffsets;
+    onPaceOffset: (effort: string, offset: number) => void;
+}) {
+    const [open, setOpen] = useState(false);
+    const popoverRef = useRef<HTMLDivElement>(null);
+    const hasDetails = day.estimatedPace !== null || day.similarRuns.length > 0;
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        function closeOnOutsideClick(event: MouseEvent): void {
+            if (!popoverRef.current?.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        }
+
+        function closeOnEscape(event: KeyboardEvent): void {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', closeOnOutsideClick);
+        document.addEventListener('keydown', closeOnEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', closeOnOutsideClick);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [open]);
+
+    const minutes = minutesAtPaces(day, paceOffsets);
+
+    if (minutes === null) {
+        return null;
+    }
+
+    const adjustedEfforts = day.efforts.map((effort) => {
+        const offset = paceOffsets[effort.effort] ?? 0;
+
+        return {
+            ...effort,
+            offset,
+            current: Math.max(effort.pace + offset, 60),
+        };
+    });
+    const single = adjustedEfforts.length === 1 ? adjustedEfforts[0] : null;
+    const adjusted = adjustedEfforts.some((effort) => effort.offset !== 0);
+    const label = `Leave by ${leaveBy(minutes, returnBy)}`;
+
+    if (!hasDetails) {
+        return <span className="mt-auto text-[13px] text-muted-foreground">{label}</span>;
+    }
+
+    return (
+        <div
+            ref={popoverRef}
+            className="relative mt-auto w-full"
+            onMouseEnter={() => {
+                if (canHover()) {
+                    setOpen(true);
+                }
+            }}
+            onMouseLeave={() => {
+                if (canHover()) {
+                    setOpen(false);
+                }
+            }}
+        >
+            <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => {
+                    if (!canHover()) {
+                        setOpen((current) => !current);
+                    }
+                }}
+                className="w-fit text-left text-[13px] text-muted-foreground underline decoration-dotted underline-offset-4"
+            >
+                {label}
+            </button>
+            {open ? (
+                <div className="absolute right-0 bottom-full z-20 pb-2">
+                    <div className="flex w-80 flex-col overflow-hidden rounded-lg border border-border bg-background text-[13px] leading-snug shadow-md">
+                        {adjustedEfforts.length > 0 ? (
+                            <div className="flex flex-col gap-3 p-3">
+                                {single ? (
+                                    <>
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-[11px] tracking-wider text-muted-foreground uppercase">
+                                                    {single.offset === 0 ? 'Calculated pace' : 'Adjusted pace'}
+                                                </span>
+                                                <span className="font-mono text-xl leading-tight tabular-nums">
+                                                    {paceClock(single.current)}
+                                                    <span className="text-[13px] text-muted-foreground"> /km</span>
+                                                </span>
+                                                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                                                    {formatDuration(minutes)}
+                                                    {single.offset !== 0 ? ` · ${offsetLabel(single.offset)}` : ''}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-0.5 text-right">
+                                                <span className="text-[11px] tracking-wider text-muted-foreground uppercase">Leave by</span>
+                                                <span className="font-mono text-xl leading-tight tabular-nums">{leaveBy(minutes, returnBy)}</span>
+                                                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                                                    {leaveShift(minutes - (day.estimatedMinutes ?? minutes), returnBy)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <PaceAdjuster
+                                            effort={single.effort}
+                                            offset={single.offset}
+                                            onChange={(offset) => onPaceOffset(single.effort, offset)}
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex items-start justify-between gap-4">
+                                            <span className="text-[11px] tracking-wider text-muted-foreground uppercase">
+                                                {adjusted ? 'Adjusted paces' : 'Calculated paces'}
+                                            </span>
+                                            <div className="flex flex-col items-end gap-0.5 text-right">
+                                                <span className="text-[11px] tracking-wider text-muted-foreground uppercase">Leave by</span>
+                                                <span className="font-mono text-xl leading-tight tabular-nums">{leaveBy(minutes, returnBy)}</span>
+                                                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                                                    {formatDuration(minutes)}
+                                                    {' · '}
+                                                    {leaveShift(minutes - (day.estimatedMinutes ?? minutes), returnBy)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {adjustedEfforts.map((effort) => (
+                                            <div key={effort.effort} className="flex flex-col gap-2">
+                                                <div className="flex items-baseline justify-between gap-4">
+                                                    <span className="text-[11px] tracking-wider text-muted-foreground uppercase">
+                                                        {effortLabel(effort.effort)}
+                                                    </span>
+                                                    <span className="font-mono text-xl leading-tight tabular-nums">
+                                                        {paceClock(effort.current)}
+                                                        <span className="text-[13px] text-muted-foreground"> /km</span>
+                                                    </span>
+                                                </div>
+                                                {effort.offset !== 0 ? (
+                                                    <span className="font-mono text-xs text-muted-foreground tabular-nums">{offsetLabel(effort.offset)}</span>
+                                                ) : null}
+                                                <PaceAdjuster
+                                                    effort={effort.effort}
+                                                    offset={effort.offset}
+                                                    onChange={(offset) => onPaceOffset(effort.effort, offset)}
+                                                />
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        ) : null}
+                        {day.similarRuns.length > 0 ? (
+                            <div className={cn('flex flex-col gap-2 p-3', adjustedEfforts.length > 0 && 'border-t border-border bg-muted/60')}>
+                                <span className="text-[11px] tracking-wider text-muted-foreground uppercase">Similar past runs</span>
+                                <div className="grid grid-cols-[1fr_auto_auto] items-baseline gap-x-4 gap-y-1 font-mono text-xs tabular-nums">
+                                    {day.similarRuns.map((run, index) => (
+                                        <Fragment key={`${run.date}-${run.name}-${index}`}>
+                                            <span>{formatDuration(run.minutes)}</span>
+                                            <span className="text-right">
+                                                {paceClock(run.pace)}
+                                                <span className="text-muted-foreground"> /km</span>
+                                            </span>
+                                            <span className="text-right text-muted-foreground">{run.date}</span>
+                                        </Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 function strengthPreference(): boolean {
     if (typeof window === 'undefined') {
         return true;
     }
 
     return localStorage.getItem('training-show-strength') !== '0';
+}
+
+function returnByPreference(): string {
+    if (typeof window === 'undefined') {
+        return '07:00';
+    }
+
+    return localStorage.getItem('training-return-by') || '07:00';
+}
+
+function leaveBy(minutes: number, returnBy: string): string {
+    const [hours, mins] = returnBy.split(':').map(Number);
+    const total = hours * 60 + mins - minutes;
+    const normalized = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+    const hour = Math.floor(normalized / 60);
+    const minute = normalized % 60;
+
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
 function StrengthSession({ minutes, featured = false }: { minutes: number; featured?: boolean }) {
@@ -254,6 +640,8 @@ function StrengthSession({ minutes, featured = false }: { minutes: number; featu
 
 export default function Training({ week, caption, phase, range, current, previous, next, days, weeks }: TrainingProps) {
     const [showStrength, setShowStrength] = useState(strengthPreference);
+    const [returnBy, setReturnBy] = useState(returnByPreference);
+    const [paceOffsets, setPaceOffsets] = useState(paceOffsetsPreference);
     const parsed = days.map((day) => (day.session ? parseSession(day.session.lines) : null));
     const runs = days.filter((day) => day.session !== null).length;
     const strengthSessions = showStrength ? days.filter((day) => day.strength !== null).length : 0;
@@ -266,6 +654,25 @@ export default function Training({ week, caption, phase, range, current, previou
             days[index].session?.name !== 'Stabridge Stagger',
     );
     const usedTypes = new Set(parsed.flatMap((session) => session?.segments.map((segment) => segment.type) ?? []));
+
+    function updatePaceOffset(effort: string, offset: number): void {
+        setPaceOffsets((current) => {
+            const next = { ...current, [effort]: clampPaceOffset(offset) };
+            localStorage.setItem('training-pace-offsets', JSON.stringify(next));
+            localStorage.removeItem('training-pace-offset');
+
+            return next;
+        });
+    }
+
+    function updateReturnBy(value: string): void {
+        if (value === '') {
+            return;
+        }
+
+        setReturnBy(value);
+        localStorage.setItem('training-return-by', value);
+    }
 
     function toggleStrength(): void {
         setShowStrength((current) => {
@@ -460,6 +867,7 @@ export default function Training({ week, caption, phase, range, current, previou
                                             <span className="text-[13px] text-muted-foreground">Nothing planned</span>
                                         </div>
                                     )}
+                                    <SessionFooter day={day} returnBy={returnBy} paceOffsets={paceOffsets} onPaceOffset={updatePaceOffset} />
                                 </li>
                             );
                         })}
@@ -481,25 +889,39 @@ export default function Training({ week, caption, phase, range, current, previou
                     ) : (
                         <span />
                     )}
-                    <button
-                        type="button"
-                        role="switch"
-                        aria-checked={showStrength}
-                        onClick={toggleStrength}
-                        className="flex items-center gap-2 self-end py-2"
-                    >
-                        <span className="text-sm text-muted-foreground">Strength</span>
-                        <span
-                            className={cn('relative h-5 w-9 rounded-full transition-colors', showStrength ? 'bg-foreground' : 'bg-[oklch(0.85_0_0)]')}
+                    <div className="flex flex-wrap items-center justify-end gap-4">
+                        <label className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Back by</span>
+                            <input
+                                type="time"
+                                value={returnBy}
+                                onChange={(event) => updateReturnBy(event.target.value)}
+                                className="rounded-md border border-border bg-transparent px-2 py-1 text-sm"
+                            />
+                        </label>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={showStrength}
+                            onClick={toggleStrength}
+                            className="flex items-center gap-2 py-2"
                         >
+                            <span className="text-sm text-muted-foreground">Strength</span>
                             <span
                                 className={cn(
-                                    'absolute top-0.5 left-0.5 size-4 rounded-full bg-background shadow-sm transition-transform',
-                                    showStrength && 'translate-x-4',
+                                    'relative h-5 w-9 rounded-full transition-colors',
+                                    showStrength ? 'bg-foreground' : 'bg-[oklch(0.85_0_0)]',
                                 )}
-                            />
-                        </span>
-                    </button>
+                            >
+                                <span
+                                    className={cn(
+                                        'absolute top-0.5 left-0.5 size-4 rounded-full bg-background shadow-sm transition-transform',
+                                        showStrength && 'translate-x-4',
+                                    )}
+                                />
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </Layout>

@@ -2,8 +2,12 @@
 
 namespace App\Training;
 
+use App\Models\Activity;
+use App\Models\RunPace;
+use App\Models\ScheduledSession;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 final class MarathonPlan
@@ -44,7 +48,13 @@ final class MarathonPlan
      *         isToday: bool,
      *         isRest: bool,
      *         session: array{name: string, lines: list<string>}|null,
-     *         strength: int|null
+     *         strength: int|null,
+     *         estimatedMinutes: int|null,
+     *         estimatedPace: int|null,
+     *         estimatedMetres: int|null,
+     *         fixedSeconds: int,
+     *         efforts: list<array{effort: string, metres: int, pace: int}>,
+     *         similarRuns: list<array{name: string, minutes: int, pace: int, date: string}>,
      *     }>,
      *     weeks: list<array{id: string, kind: 'prep'|'plan', week: int, label: int, phase: string, km: int, offset: int, range: string}>
      * }
@@ -76,7 +86,13 @@ final class MarathonPlan
      *         isToday: bool,
      *         isRest: bool,
      *         session: array{name: string, lines: list<string>}|null,
-     *         strength: int|null
+     *         strength: int|null,
+     *         estimatedMinutes: int|null,
+     *         estimatedPace: int|null,
+     *         estimatedMetres: int|null,
+     *         fixedSeconds: int,
+     *         efforts: list<array{effort: string, metres: int, pace: int}>,
+     *         similarRuns: list<array{name: string, minutes: int, pace: int, date: string}>,
      *     }>,
      *     weeks: list<array{id: string, kind: 'prep'|'plan', week: int, label: int, phase: string, km: int, offset: int, range: string}>
      * }
@@ -109,32 +125,62 @@ final class MarathonPlan
      *         isToday: bool,
      *         isRest: bool,
      *         session: array{name: string, lines: list<string>}|null,
-     *         strength: int|null
+     *         strength: int|null,
+     *         estimatedMinutes: int|null,
+     *         estimatedPace: int|null,
+     *         estimatedMetres: int|null,
+     *         fixedSeconds: int,
+     *         efforts: list<array{effort: string, metres: int, pace: int}>,
+     *         similarRuns: list<array{name: string, minutes: int, pace: int, date: string}>,
      *     }>,
      *     weeks: list<array{id: string, kind: 'prep'|'plan', week: int, label: int, phase: string, km: int, offset: int, range: string}>
      * }
      */
     private static function presentAt(int $position, CarbonInterface $today): array
     {
+        RunPaces::recompute();
+
         $schedule = self::schedule();
         $entry = $schedule[$position];
         $start = $entry['startsOn'];
         $todayDate = CarbonImmutable::parse($today)->toDateString();
+        $paces = RunPace::secondsPerKilometre();
+        $recentRuns = Activity::query()
+            ->where('started_at', '>=', now()->subMonths((int) config('training.pace_months'))->startOfDay())
+            ->orderByDesc('started_at')
+            ->get();
         $days = [];
 
-        foreach (self::sessions($entry['template']) as $offset => $day) {
-            $date = $start->addDays($offset);
+        $stored = ScheduledSession::query()
+            ->whereDate('date', '>=', $start->toDateString())
+            ->whereDate('date', '<=', $start->addDays(6)->toDateString())
+            ->orderBy('date')
+            ->get();
+
+        foreach ($stored as $session) {
+            $lines = $session->lines ?? [];
+            $estimate = $session->name === null ? null : RunDuration::estimate($session->name, $lines, $paces);
 
             $days[] = [
-                'date' => $date->toDateString(),
-                'label' => $date->format('l j M'),
-                'isToday' => $date->toDateString() === $todayDate,
-                'isRest' => isset($day['rest']),
-                'session' => isset($day['name']) ? [
-                    'name' => $day['name'],
-                    'lines' => $day['lines'],
-                ] : null,
-                'strength' => ($day['strength'] ?? false) ? 30 : null,
+                'date' => $session->date->toDateString(),
+                'label' => $session->date->format('l j M'),
+                'isToday' => $session->date->toDateString() === $todayDate,
+                'isRest' => $session->is_rest,
+                'session' => $session->name === null ? null : [
+                    'name' => $session->name,
+                    'lines' => $lines,
+                ],
+                'strength' => $session->has_strength ? 30 : null,
+                'estimatedMinutes' => $session->estimated_minutes,
+                'estimatedPace' => $estimate === null || $estimate['metres'] < 100
+                    ? null
+                    : (int) round($estimate['seconds'] / ($estimate['metres'] / 1000)),
+                'estimatedMetres' => $estimate === null || $estimate['metres'] < 100
+                    ? null
+                    : $estimate['metres'],
+                'fixedSeconds' => $estimate['fixedSeconds'] ?? 0,
+                'efforts' => $estimate['efforts'] ?? [],
+                'similarRuns' => $estimate === null ? [] : self::similarRuns($recentRuns, $estimate['metres']),
             ];
         }
 
@@ -150,6 +196,38 @@ final class MarathonPlan
             'days' => $days,
             'weeks' => self::overview($schedule),
         ];
+    }
+
+    /**
+     * @param  Collection<int, Activity>  $runs
+     * @return list<array{name: string, minutes: int, pace: int, date: string}>
+     */
+    private static function similarRuns(Collection $runs, int $metres): array
+    {
+        if ($metres < 100) {
+            return [];
+        }
+
+        $matches = [];
+
+        foreach ($runs as $run) {
+            if (abs($run->distance_metres - $metres) / $metres > 0.1) {
+                continue;
+            }
+
+            $matches[] = [
+                'name' => $run->name,
+                'minutes' => (int) round($run->moving_time_seconds / 60),
+                'pace' => (int) round($run->moving_time_seconds / ($run->distance_metres / 1000)),
+                'date' => $run->started_at->format('j M'),
+            ];
+
+            if (count($matches) === 3) {
+                break;
+            }
+        }
+
+        return $matches;
     }
 
     /**
@@ -186,6 +264,48 @@ final class MarathonPlan
         }
 
         return null;
+    }
+
+    public static function sync(): void
+    {
+        $paces = RunPace::secondsPerKilometre();
+        $rows = [];
+        $now = now()->toDateTimeString();
+
+        foreach (self::schedule() as $entry) {
+            foreach (self::sessions($entry['template']) as $offset => $day) {
+                $name = $day['name'] ?? null;
+                $lines = $day['lines'] ?? null;
+
+                $rows[] = [
+                    'date' => $entry['startsOn']->addDays($offset)->toDateString(),
+                    'kind' => $entry['kind'],
+                    'week_index' => $entry['index'],
+                    'template' => $entry['template'],
+                    'phase' => $entry['phase'],
+                    'is_rest' => isset($day['rest']),
+                    'name' => $name,
+                    'lines' => $lines === null ? null : json_encode($lines),
+                    'has_strength' => (bool) ($day['strength'] ?? false),
+                    'estimated_minutes' => $name === null ? null : RunDuration::minutes($name, $lines ?? [], $paces),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        ScheduledSession::query()->upsert($rows, ['date'], [
+            'kind',
+            'week_index',
+            'template',
+            'phase',
+            'is_rest',
+            'name',
+            'lines',
+            'has_strength',
+            'estimated_minutes',
+            'updated_at',
+        ]);
     }
 
     /**
