@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('list-routes')]
-#[Description('Lists the running routes saved on Strava, shortest first, with distance, climb, and whether each is a daytime or nighttime route. Nighttime routes are lit and safe in the dark; a route is nighttime when its Strava name or description says "night" or "lit". Routes are copied from Strava when the owner presses Sync on the routes page, so a route created since then is missing until they do. Use it to pick a route for a session or to find distances that need more nighttime routes.')]
+#[Description('Lists the running routes saved on Strava, shortest first, with distance, climb, and whether each is a daytime or nighttime route. Nighttime routes are lit and safe in the dark; a route is nighttime when its Strava name or description says "night" or "lit". Routes are saved with import-routes, so a route created on Strava since then is missing until it is imported. Use it to pick a route for a session or to find distances that need more nighttime routes.')]
 class ListRoutesTool extends Tool
 {
     /**

@@ -1,10 +1,7 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link } from '@inertiajs/react';
 
-import { sync } from '@/actions/App/Http/Controllers/StravaRouteController';
 import Layout from '@/Layout';
 import { training } from '@/routes';
-import type { SharedData } from '@/types';
 
 type StravaRoute = {
     id: number;
@@ -52,21 +49,6 @@ function RouteList({ title, caption, routes }: { title: string; caption: string;
 }
 
 export default function Routes({ nighttime, daytime }: RoutesProps) {
-    const { routesSynced, errors } = usePage<SharedData>().props;
-    const [syncing, setSyncing] = useState(false);
-
-    function syncRoutes(): void {
-        router.post(
-            sync.url(),
-            {},
-            {
-                preserveScroll: true,
-                onStart: () => setSyncing(true),
-                onFinish: () => setSyncing(false),
-            },
-        );
-    }
-
     return (
         <Layout>
             <Head title="Routes" />
@@ -75,22 +57,7 @@ export default function Routes({ nighttime, daytime }: RoutesProps) {
                     <Link href={training()} className="text-sm text-muted-foreground hover:text-foreground">
                         ← Training
                     </Link>
-                    <div className="flex flex-wrap items-end justify-between gap-4">
-                        <h1 className="font-['Instrument_Serif'] text-5xl leading-none font-normal">Routes</h1>
-                        <button
-                            type="button"
-                            disabled={syncing}
-                            onClick={syncRoutes}
-                            className="rounded-md border border-border px-3 py-1 text-sm transition-colors hover:bg-[oklch(0.95_0_0)] disabled:opacity-60"
-                        >
-                            {syncing ? 'Syncing routes…' : 'Sync Strava routes'}
-                        </button>
-                    </div>
-                    {errors.routes ? (
-                        <p className="text-sm text-red-600">{errors.routes}</p>
-                    ) : (
-                        routesSynced !== null && <p className="text-sm text-muted-foreground">{routesSynced} routes synced.</p>
-                    )}
+                    <h1 className="font-['Instrument_Serif'] text-5xl leading-none font-normal">Routes</h1>
                     <p className="text-sm text-muted-foreground">
                         A route is for running in the dark when its Strava name or description includes “lit” or “night”, such as “Canal loop (lit)”.
                         Every other route counts as daytime.

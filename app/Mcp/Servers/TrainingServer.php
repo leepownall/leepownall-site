@@ -3,6 +3,8 @@
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\GetTrainingPlanTool;
+use App\Mcp\Tools\ImportRoutesTool;
+use App\Mcp\Tools\ImportRunsTool;
 use App\Mcp\Tools\ImportTrainingPlanTool;
 use App\Mcp\Tools\ListRoutesTool;
 use App\Mcp\Tools\SetRacesTool;
@@ -13,7 +15,7 @@ use Laravel\Mcp\Server\Attributes\Version;
 
 #[Name('Lee Pownall Training')]
 #[Version('1.0.0')]
-#[Instructions('Manages the marathon training plan shown at /training on leepownall.com. Use get-training-plan to read the stored plan and import-training-plan to replace it after the plan changes. Use set-races to keep the races in line with the plan, with exactly one target race. Use list-routes to choose a Strava route for a session; most runs are early in the morning in the dark, so prefer nighttime routes unless told otherwise. Runs recorded on Strava are imported by the site itself; use the Strava MCP server to read them.')]
+#[Instructions('Manages the marathon training plan shown at /training on leepownall.com. Use get-training-plan to read the stored plan and import-training-plan to replace it after the plan changes. Use set-races to keep the races in line with the plan, with exactly one target race. Use list-routes to choose a Strava route for a session; most runs are early in the morning in the dark, so prefer nighttime routes unless told otherwise. The site cannot reach Strava itself: read activities and routes with the Strava MCP server, then save them here with import-runs and import-routes. Import recent runs whenever you look at how training is going, so the plan-against-actual view on the site stays current.')]
 class TrainingServer extends Server
 {
     protected array $tools = [
@@ -21,5 +23,7 @@ class TrainingServer extends Server
         GetTrainingPlanTool::class,
         ListRoutesTool::class,
         SetRacesTool::class,
+        ImportRunsTool::class,
+        ImportRoutesTool::class,
     ];
 }

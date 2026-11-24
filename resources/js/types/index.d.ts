@@ -10,7 +10,6 @@ export interface SharedData extends PageProps {
     currentYear: string;
     quote: { message: string; author: string };
     auth: Auth;
-    routesSynced: number | null;
 }
 
 export interface User {

@@ -40,12 +40,6 @@ return [
         'password' => env('GARMIN_PASSWORD'),
     ],
 
-    'strava' => [
-        'client_id' => env('STRAVA_CLIENT_ID'),
-        'client_secret' => env('STRAVA_CLIENT_SECRET'),
-        'verify_token' => env('STRAVA_VERIFY_TOKEN'),
-    ],
-
     'browser' => [
         'chrome_binary' => env('CHROME_BINARY', 'chromium-browser'),
         'headless' => env('HEADLESS', true),
